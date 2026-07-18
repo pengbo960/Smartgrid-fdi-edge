@@ -6,6 +6,7 @@ dependencies:
   - pandas
   - numpy
   - pyyaml
+  - pytest
   - pip
   - pip:
       - paho-mqtt

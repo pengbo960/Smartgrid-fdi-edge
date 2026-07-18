@@ -1,0 +1,11 @@
+broker:
+  host: localhost
+  port: 1883
+  keepalive: 60
+
+topics:
+  measurement: smartgrid/{device_id}/measurement
+
+mqtt:
+  qos: 0
+  retain: false

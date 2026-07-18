@@ -1,0 +1,27 @@
+simulation:
+  publish_interval: 1.0
+  duration: 60
+  random_seed: 42
+  scenario_id: normal_01
+
+devices:
+  - device_id: meter_01
+    phase: 0.0
+    voltage_base: 230.0
+    current_base: 4.5
+    frequency_base: 50.0
+    power_factor: 0.95
+
+  - device_id: meter_02
+    phase: 0.7
+    voltage_base: 230.0
+    current_base: 4.5
+    frequency_base: 50.0
+    power_factor: 0.95
+
+  - device_id: meter_03
+    phase: 1.4
+    voltage_base: 230.0
+    current_base: 4.5
+    frequency_base: 50.0
+    power_factor: 0.95
