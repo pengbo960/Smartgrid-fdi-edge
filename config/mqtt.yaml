@@ -3,9 +3,13 @@ broker:
   port: 1883
   keepalive: 60
 
-topics:
-  measurement: smartgrid/{device_id}/measurement
+topic:
+  measurement_template: grid/substation_01/{device_id}/measurement
+  measurement_subscription: grid/substation_01/+/measurement
 
-mqtt:
+publish:
   qos: 0
   retain: false
+
+subscribe:
+  qos: 0

@@ -1,0 +1,11 @@
+receive_timestamp,message_timestamp,scenario_id,device_id,client_id,topic,qos,retain,payload_size,sequence_number,voltage,current,power,frequency,attack_type,is_attack
+2026-07-19T14:27:14.774553+00:00,2026-07-19T14:27:14.773980+00:00,normal_smoke_test,meter_01,simulator-normal_smoke_test,grid/substation_01/meter_01/measurement,0,0,274,0,229.964,4.4862,979.7402,50.0035,none,0
+2026-07-19T14:27:14.774847+00:00,2026-07-19T14:27:14.774267+00:00,normal_smoke_test,meter_02,simulator-normal_smoke_test,grid/substation_01/meter_02/measurement,0,0,276,0,231.2565,4.7667,1048.2203,50.0148,none,0
+2026-07-19T14:27:14.774899+00:00,2026-07-19T14:27:14.774327+00:00,normal_smoke_test,meter_03,simulator-normal_smoke_test,grid/substation_01/meter_03/measurement,0,0,276,0,231.9167,5.1005,1124.4522,50.0305,none,0
+2026-07-19T14:27:15.781027+00:00,2026-07-19T14:27:15.779148+00:00,normal_smoke_test,meter_01,simulator-normal_smoke_test,grid/substation_01/meter_01/measurement,0,0,275,1,230.2441,4.5422,991.2998,49.9956,none,0
+2026-07-19T14:27:15.781546+00:00,2026-07-19T14:27:15.780013+00:00,normal_smoke_test,meter_02,simulator-normal_smoke_test,grid/substation_01/meter_02/measurement,0,0,276,1,231.4102,5.0163,1102.9071,50.0161,none,0
+2026-07-19T14:27:15.781818+00:00,2026-07-19T14:27:15.780284+00:00,normal_smoke_test,meter_03,simulator-normal_smoke_test,grid/substation_01/meter_03/measurement,0,0,276,1,232.1159,4.9797,1097.1452,50.0272,none,0
+2026-07-19T14:27:16.785684+00:00,2026-07-19T14:27:16.784214+00:00,normal_smoke_test,meter_01,simulator-normal_smoke_test,grid/substation_01/meter_01/measurement,0,0,274,2,230.3782,4.5473,996.344,50.0027,none,0
+2026-07-19T14:27:16.786650+00:00,2026-07-19T14:27:16.785250+00:00,normal_smoke_test,meter_02,simulator-normal_smoke_test,grid/substation_01/meter_02/measurement,0,0,275,2,231.6021,4.846,1067.9258,50.0096,none,0
+2026-07-19T14:27:16.787017+00:00,2026-07-19T14:27:16.785646+00:00,normal_smoke_test,meter_03,simulator-normal_smoke_test,grid/substation_01/meter_03/measurement,0,0,276,2,231.3368,5.0504,1107.1743,50.0292,none,0
+2026-07-19T14:27:17.790934+00:00,2026-07-19T14:27:17.789374+00:00,normal_smoke_test,meter_01,simulator-normal_smoke_test,grid/substation_01/meter_01/measurement,0,0,274,3,230.4055,4.502,987.9659,49.9971,none,0
