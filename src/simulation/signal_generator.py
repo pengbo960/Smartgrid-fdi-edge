@@ -140,9 +140,7 @@ def build_device_config(raw_config: dict[str, Any]) -> DeviceConfig:
         phase = float(raw_config["phase"])
         voltage_base = float(raw_config.get("voltage_base", 230.0))
         current_base = float(raw_config.get("current_base", 4.5))
-        frequency_base = float(
-            raw_config.get("frequency_base", 50.0)
-        )
+        frequency_base = float(raw_config.get("frequency_base", 50.0))
         power_factor = float(raw_config.get("power_factor", 0.95))
     except (TypeError, ValueError) as exc:
         raise ValueError(
@@ -159,9 +157,7 @@ def build_device_config(raw_config: dict[str, Any]) -> DeviceConfig:
         raise ValueError("frequency_base must be greater than zero")
 
     if not 0 < power_factor <= 1:
-        raise ValueError(
-            "power_factor must be greater than zero and no greater than one"
-        )
+        raise ValueError("power_factor must be greater than zero and no greater than one")
 
     return DeviceConfig(
         device_id=device_id,
