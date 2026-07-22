@@ -9,7 +9,9 @@ for detecting false data injection attacks in smart-grid IoT communications.
 - [x] Normal smart-meter signal generation
 - [x] MQTT publishing
 - [x] MQTT subscription and CSV collection
-- [ ] Attack simulation
+- [x] Configurable constant, random and gradual attacks
+- [x] Reproducible attack scenario scheduling
+- [ ] Replay attack
 - [ ] Multi-view feature extraction
 - [ ] Known-attack detection
 - [ ] Unknown-attack detection
@@ -56,3 +58,26 @@ Each collected row contains:
 - sequence number
 - voltage, current, power and frequency
 - attack type and binary attack label
+
+## Run attack scenarios
+
+Start the collector:
+
+```bash
+python scripts/collect_dataset.py \
+  --output data/raw/constant_01.csv
+```
+
+Run a configured attack scenario:
+
+```bash
+python scripts/run_simulator.py \
+  --scenario config/scenarios/constant.yaml
+```
+
+Available scenarios:
+
+* normal.yaml
+* constant.yaml
+* random.yaml
+* gradual.yaml

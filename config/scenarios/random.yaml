@@ -1,0 +1,12 @@
+scenario:
+  scenario_id: random_01
+  duration: 60
+  publish_interval: 1.0
+  random_seed: 42
+
+attacks:
+  - device_id: meter_02
+    attack_type: random
+    start_step: 15
+    end_step: 45
+    random_seed: 142

@@ -194,6 +194,10 @@ class MqttSubscriber:
                     "is_attack",
                     "",
                 ),
+                "attack_step": payload.get(
+                    "attack_step",
+                    "",
+                ),
             }
 
             self.message_handler(row)

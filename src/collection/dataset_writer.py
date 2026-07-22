@@ -23,6 +23,7 @@ RAW_DATA_FIELDS = [
     "frequency",
     "attack_type",
     "is_attack",
+    "attack_step",
 ]
 
 
