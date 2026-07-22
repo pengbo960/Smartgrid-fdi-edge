@@ -1,0 +1,28 @@
+window:
+  size: 20
+  minimum_history: 2
+
+sorting:
+  device_column: device_id
+  timestamp_column: message_timestamp
+  sequence_column: sequence_number
+
+columns:
+  required:
+    - receive_timestamp
+    - message_timestamp
+    - scenario_id
+    - device_id
+    - client_id
+    - topic
+    - qos
+    - retain
+    - payload_size
+    - sequence_number
+    - voltage
+    - current
+    - power
+    - frequency
+    - attack_type
+    - is_attack
+    - attack_step
