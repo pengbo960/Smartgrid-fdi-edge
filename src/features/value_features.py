@@ -66,10 +66,30 @@ def _extract_history_values(
     return values
 
 
+def _percentage_change(
+    current_value: float,
+    previous_value: float,
+) -> float:
+    """
+    Calculate percentage change relative to the previous absolute value.
+
+    A zero previous value produces 0.0 to avoid division by zero.
+    """
+    if previous_value == 0:
+        return 0.0
+
+    return (
+        (current_value - previous_value)
+        / abs(previous_value)
+        * 100.0
+    )
+
+
 def extract_value_features(
     current_row: dict[str, Any],
     history: list[dict[str, Any]],
     minimum_history: int = 2,
+    power_factor: float = 0.95,
 ) -> dict[str, float]:
     """
     Extract value-based features for one current message.
@@ -78,10 +98,31 @@ def extract_value_features(
     same device. The current message must not already be in history.
 
     Rolling statistics are calculated only from historical values.
+
+    Args:
+        current_row:
+            Current MQTT measurement row.
+
+        history:
+            Previous messages for the same device.
+
+        minimum_history:
+            Minimum number of previous messages required before the
+            rolling standard deviation and z-score are calculated.
+
+        power_factor:
+            Expected power factor used to assess consistency between
+            voltage, current and power.
     """
     if minimum_history < 1:
         raise ValueError(
             "minimum_history must be at least one"
+        )
+
+    if not 0 < power_factor <= 1:
+        raise ValueError(
+            "power_factor must be greater than zero "
+            "and no greater than one"
         )
 
     features: dict[str, float] = {}
@@ -105,14 +146,28 @@ def extract_value_features(
 
         if history_values:
             previous_value = history_values[-1]
+
             difference = (
                 current_value - previous_value
             )
+
+            percentage_change = _percentage_change(
+                current_value=current_value,
+                previous_value=previous_value,
+            )
         else:
             difference = 0.0
+            percentage_change = 0.0
 
         features[f"{field_name}_diff"] = round(
             difference,
+            6,
+        )
+
+        features[
+            f"{field_name}_percentage_change"
+        ] = round(
+            percentage_change,
             6,
         )
 
@@ -179,5 +234,39 @@ def extract_value_features(
             zscore,
             6,
         )
+
+    voltage = _as_float(
+        current_row["voltage"],
+        "voltage",
+    )
+
+    current = _as_float(
+        current_row["current"],
+        "current",
+    )
+
+    observed_power = _as_float(
+        current_row["power"],
+        "power",
+    )
+
+    expected_power = (
+        voltage
+        * current
+        * power_factor
+    )
+
+    features["expected_power"] = round(
+        expected_power,
+        6,
+    )
+
+    features["power_consistency_error"] = round(
+        abs(
+            observed_power
+            - expected_power
+        ),
+        6,
+    )
 
     return features

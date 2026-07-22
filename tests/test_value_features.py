@@ -207,25 +207,35 @@ def test_features_are_created_for_all_value_fields() -> None:
 
     expected_fields = {
         "voltage_diff",
+        "voltage_percentage_change",
         "voltage_rolling_mean",
         "voltage_rolling_std",
         "voltage_deviation",
         "voltage_zscore",
+
         "current_diff",
+        "current_percentage_change",
         "current_rolling_mean",
         "current_rolling_std",
         "current_deviation",
         "current_zscore",
+
         "power_diff",
+        "power_percentage_change",
         "power_rolling_mean",
         "power_rolling_std",
         "power_deviation",
         "power_zscore",
+
         "frequency_diff",
+        "frequency_percentage_change",
         "frequency_rolling_mean",
         "frequency_rolling_std",
         "frequency_deviation",
         "frequency_zscore",
+
+        "expected_power",
+        "power_consistency_error",
     }
 
     assert set(features.keys()) == (
@@ -276,4 +286,142 @@ def test_invalid_minimum_history_is_rejected() -> None:
             ),
             history=[],
             minimum_history=0,
+        )
+
+def test_percentage_change_uses_previous_value() -> None:
+    history = [
+        build_row(
+            voltage=200.0,
+            current=5.0,
+            power=950.0,
+            frequency=50.0,
+        )
+    ]
+
+    current = build_row(
+        voltage=220.0,
+        current=5.0,
+        power=1045.0,
+        frequency=50.0,
+    )
+
+    features = extract_value_features(
+        current_row=current,
+        history=history,
+    )
+
+    assert (
+        features["voltage_percentage_change"]
+        == 10.0
+    )
+
+def test_negative_percentage_change() -> None:
+    history = [
+        build_row(
+            voltage=250.0
+        )
+    ]
+
+    current = build_row(
+        voltage=225.0
+    )
+
+    features = extract_value_features(
+        current_row=current,
+        history=history,
+    )
+
+    assert (
+        features["voltage_percentage_change"]
+        == -10.0
+    )
+
+def test_percentage_change_without_history_is_zero() -> None:
+    features = extract_value_features(
+        current_row=build_row(
+            voltage=230.0
+        ),
+        history=[],
+    )
+
+    assert (
+        features["voltage_percentage_change"]
+        == 0.0
+    )
+
+def test_percentage_change_handles_zero_previous_value() -> None:
+    history = [
+        build_row(
+            voltage=0.0
+        )
+    ]
+
+    current = build_row(
+        voltage=10.0
+    )
+
+    features = extract_value_features(
+        current_row=current,
+        history=history,
+    )
+
+    assert (
+        features["voltage_percentage_change"]
+        == 0.0
+    )
+
+def test_power_consistency_error_is_zero_for_consistent_values() -> None:
+    voltage = 230.0
+    current = 5.0
+    power = voltage * current * 0.95
+
+    current_row = build_row(
+        voltage=voltage,
+        current=current,
+        power=power,
+    )
+
+    features = extract_value_features(
+        current_row=current_row,
+        history=[],
+        power_factor=0.95,
+    )
+
+    assert features["expected_power"] == 1092.5
+    assert (
+        features["power_consistency_error"]
+        == 0.0
+    )
+
+def test_power_consistency_error_detects_inconsistency() -> None:
+    current_row = build_row(
+        voltage=242.0,
+        current=5.0,
+        power=1092.5,
+    )
+
+    features = extract_value_features(
+        current_row=current_row,
+        history=[],
+        power_factor=0.95,
+    )
+
+    assert features["expected_power"] == 1149.5
+
+    assert (
+        features["power_consistency_error"]
+        == 57.0
+    )
+
+def test_invalid_power_factor_is_rejected() -> None:
+    with pytest.raises(
+        ValueError,
+        match="power_factor",
+    ):
+        extract_value_features(
+            current_row=build_row(
+                voltage=230.0
+            ),
+            history=[],
+            power_factor=0.0,
         )
