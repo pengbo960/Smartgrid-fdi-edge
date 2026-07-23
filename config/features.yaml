@@ -2,10 +2,15 @@ window:
   size: 20
   minimum_history: 2
 
-sorting:
-  device_column: device_id
-  timestamp_column: message_timestamp
-  sequence_column: sequence_number
+value:
+  power_factor: 0.95
+
+temporal:
+  repeated_value_field: voltage
+  value_tolerance: 0.000001
+
+output:
+  drop_warmup_rows: false
 
 columns:
   required:
