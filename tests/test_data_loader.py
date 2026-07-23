@@ -142,3 +142,45 @@ def test_load_raw_dataset_rejects_empty_file(
 
     with pytest.raises(ValueError):
         load_raw_dataset(path)
+
+
+def test_load_raw_dataset_preserves_gateway_arrival_order(
+    tmp_path: Path,
+) -> None:
+    dataframe = build_valid_dataframe()
+
+    extra_row = dataframe.iloc[0].copy()
+    extra_row["device_id"] = "meter_01"
+    extra_row["sequence_number"] = 2
+    extra_row["message_timestamp"] = (
+        "2026-07-20T10:00:00+00:00"
+    )
+    extra_row["receive_timestamp"] = (
+        "2026-07-20T10:00:03+00:00"
+    )
+
+    dataframe = pd.concat(
+        [
+            dataframe,
+            pd.DataFrame([extra_row]),
+        ],
+        ignore_index=True,
+    )
+
+    path = tmp_path / "raw.csv"
+
+    dataframe.to_csv(
+        path,
+        index=False,
+    )
+
+    loaded = load_raw_dataset(path)
+
+    meter_01 = loaded[
+        loaded["device_id"] == "meter_01"
+    ]
+
+    assert (
+        meter_01["sequence_number"].tolist()
+        == [0, 2]
+    )

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime
 from typing import Any
 
 import pandas as pd
@@ -157,7 +156,7 @@ def extract_temporal_features(
     value_tolerance: float = 1e-6,
 ) -> dict[str, float | int]:
     """
-    Extract temporal and sequence-behaviour features.
+    Extract temporal, delay and sequence-behaviour features.
 
     The history must contain only previous messages from the same device.
     The current message must not already be included in history.
@@ -204,18 +203,20 @@ def extract_temporal_features(
         repeated_value_field,
     )
 
-    message_delay = (
+    transport_delay_estimate = (
         receive_timestamp
         - message_timestamp
     ).total_seconds()
 
     if not history:
         return {
-            "inter_arrival_time": 0.0,
-            "message_delay": round(
-                message_delay,
+            "source_publish_interval": 0.0,
+            "gateway_inter_arrival_time": 0.0,
+            "transport_delay_estimate": round(
+                transport_delay_estimate,
                 6,
             ),
+            "delay_change": 0.0,
             "sequence_gap": 0,
             "is_duplicate_sequence": 0,
             "is_out_of_order": 0,
@@ -227,6 +228,7 @@ def extract_temporal_features(
 
     required_previous_fields = {
         "message_timestamp",
+        "receive_timestamp",
         "sequence_number",
     }
 
@@ -240,9 +242,14 @@ def extract_temporal_features(
             f"{sorted(missing_previous)}"
         )
 
-    previous_timestamp = _as_timestamp(
+    previous_message_timestamp = _as_timestamp(
         previous["message_timestamp"],
         "message_timestamp",
+    )
+
+    previous_receive_timestamp = _as_timestamp(
+        previous["receive_timestamp"],
+        "receive_timestamp",
     )
 
     previous_sequence = _as_int(
@@ -250,10 +257,25 @@ def extract_temporal_features(
         "sequence_number",
     )
 
-    inter_arrival_time = (
+    source_publish_interval = (
         message_timestamp
-        - previous_timestamp
+        - previous_message_timestamp
     ).total_seconds()
+
+    gateway_inter_arrival_time = (
+        receive_timestamp
+        - previous_receive_timestamp
+    ).total_seconds()
+
+    previous_transport_delay = (
+        previous_receive_timestamp
+        - previous_message_timestamp
+    ).total_seconds()
+
+    delay_change = (
+        transport_delay_estimate
+        - previous_transport_delay
+    )
 
     raw_sequence_gap = (
         current_sequence
@@ -294,12 +316,20 @@ def extract_temporal_features(
     )
 
     return {
-        "inter_arrival_time": round(
-            inter_arrival_time,
+        "source_publish_interval": round(
+            source_publish_interval,
             6,
         ),
-        "message_delay": round(
-            message_delay,
+        "gateway_inter_arrival_time": round(
+            gateway_inter_arrival_time,
+            6,
+        ),
+        "transport_delay_estimate": round(
+            transport_delay_estimate,
+            6,
+        ),
+        "delay_change": round(
+            delay_change,
             6,
         ),
         "sequence_gap": sequence_gap,

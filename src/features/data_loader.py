@@ -51,8 +51,8 @@ def load_raw_dataset(
     """
     Load, validate and sort a raw MQTT dataset.
 
-    Sorting is performed by device_id, message_timestamp and
-    sequence_number so that each device's history is processed in order.
+    Sorting is performed by device_id and receive_timestamp so that
+    each device's gateway-observed arrival order is preserved.
     """
     dataset_path = Path(path)
 
@@ -169,8 +169,7 @@ def load_raw_dataset(
     dataframe = dataframe.sort_values(
         by=[
             "device_id",
-            "message_timestamp",
-            "sequence_number",
+            "receive_timestamp",
         ],
         kind="stable",
     ).reset_index(drop=True)
