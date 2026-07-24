@@ -19,11 +19,12 @@ env/
 .ipynb_checkpoints/
 
 # Raw and generated data
-data/raw/*.csv
-data/raw/*.json
-data/raw/*.jsonl
+data/raw/
 data/processed/*.csv
 data/processed/*.parquet
+
+config/scenarios/dataset/
+config/scenarios/smoke/
 
 # Trained models
 models/*.joblib
