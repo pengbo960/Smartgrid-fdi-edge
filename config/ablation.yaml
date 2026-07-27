@@ -1,0 +1,68 @@
+dataset:
+  path: data/processed/multiview_dataset.csv
+
+labels:
+  target_column: is_attack
+
+  known_attack_types:
+    - none
+    - constant
+    - random
+
+  excluded_attack_types:
+    - gradual
+
+split:
+  group_column: source_file
+  random_seed: 42
+
+preprocessing:
+  drop_warmup_rows: false
+  maximum_missing_fraction: 0.0
+
+model:
+  class_weight: balanced
+  max_iter: 1000
+  random_seed: 42
+  default_threshold: 0.5
+  threshold_metric: macro_f1
+
+experiments:
+  - name: value_only
+    feature_groups:
+      - value
+
+  - name: temporal_only
+    feature_groups:
+      - temporal
+
+  - name: protocol_only
+    feature_groups:
+      - protocol
+
+  - name: value_temporal
+    feature_groups:
+      - value
+      - temporal
+
+  - name: value_protocol
+    feature_groups:
+      - value
+      - protocol
+
+  - name: temporal_protocol
+    feature_groups:
+      - temporal
+      - protocol
+
+  - name: all_views
+    feature_groups:
+      - value
+      - temporal
+      - protocol
+
+output:
+  metrics_directory: results/ablation/metrics
+  predictions_directory: results/ablation/predictions
+  figures_directory: results/ablation/figures
+  summary_csv: results/ablation/ablation_summary.csv
