@@ -1,0 +1,38 @@
+dataset:
+  path: data/processed/multiview_dataset.csv
+
+labels:
+  target_column: is_attack
+
+  known_attack_types:
+    - none
+    - constant
+    - random
+
+  excluded_attack_types:
+    - gradual
+
+features:
+  include_groups:
+    - value
+    - temporal
+
+split:
+  group_column: source_file
+  random_seed: 42
+
+preprocessing:
+  drop_warmup_rows: false
+  maximum_missing_fraction: 0.0
+
+model:
+  class_weight: balanced
+  max_iter: 1000
+  random_seed: 42
+
+output:
+  model_path: models/logistic_baseline.joblib
+  scaler_path: models/logistic_baseline_scaler.joblib
+  feature_names_path: models/logistic_baseline_features.json
+  metrics_path: results/metrics/logistic_baseline_metrics.json
+  predictions_path: results/predictions/logistic_baseline_predictions.csv
