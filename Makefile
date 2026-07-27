@@ -8,7 +8,7 @@ SMOKE_RAW_DIR := data/raw/smoke_runs
 
 PROCESSED_DATASET := data/processed/multiview_dataset.csv
 
-.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke
+.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate
 
 help:
 	@echo "Available commands:"
@@ -19,6 +19,7 @@ help:
 	@echo "  make smoke-collect"
 	@echo "  make features"
 	@echo "  make clean-smoke"
+	@echo "  make validate"
 
 test:
 	$(PYTHON) -m pytest -v
