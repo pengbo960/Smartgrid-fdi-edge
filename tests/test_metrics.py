@@ -1,9 +1,11 @@
 import numpy as np
 import pytest
+import json
 
 from src.evaluation.metrics import (
     calculate_attack_type_recall,
     calculate_binary_metrics,
+    save_metrics_report,
 )
 
 
@@ -216,3 +218,32 @@ def test_attack_type_recall_rejects_invalid_labels() -> None:
                 0,
             ],
         )
+    
+def test_save_metrics_report(
+    tmp_path,
+) -> None:
+    output_path = (
+        tmp_path / "metrics.json"
+    )
+
+    report = {
+        "test": {
+            "accuracy": 0.99,
+            "recall": 0.98,
+        }
+    }
+
+    save_metrics_report(
+        report=report,
+        output_path=output_path,
+    )
+
+    assert output_path.exists()
+
+    with output_path.open(
+        "r",
+        encoding="utf-8",
+    ) as file:
+        loaded = json.load(file)
+
+    assert loaded == report

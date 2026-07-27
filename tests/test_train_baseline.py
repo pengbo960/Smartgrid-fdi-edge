@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import pytest
+import json
+import joblib
 
 from src.training.prepare_dataset import (
     PreparedDataset,
@@ -9,6 +11,7 @@ from src.training.split_data import (
     DatasetSplit,
 )
 from src.training.train_baseline import (
+    save_baseline_artifacts,
     train_logistic_baseline,
 )
 
@@ -349,3 +352,62 @@ def test_missing_feature_is_rejected() -> None:
             prepared=prepared,
             split=invalid_split,
         )
+
+def test_save_baseline_artifacts(
+    tmp_path,
+) -> None:
+    prepared, split = (
+        build_training_inputs()
+    )
+
+    result = train_logistic_baseline(
+        prepared=prepared,
+        split=split,
+    )
+
+    model_path = (
+        tmp_path / "model.joblib"
+    )
+
+    scaler_path = (
+        tmp_path / "scaler.joblib"
+    )
+
+    features_path = (
+        tmp_path / "features.json"
+    )
+
+    save_baseline_artifacts(
+        result=result,
+        model_path=model_path,
+        scaler_path=scaler_path,
+        feature_names_path=features_path,
+    )
+
+    assert model_path.exists()
+    assert scaler_path.exists()
+    assert features_path.exists()
+
+    loaded_model = joblib.load(
+        model_path
+    )
+
+    loaded_scaler = joblib.load(
+        scaler_path
+    )
+
+    with features_path.open(
+        "r",
+        encoding="utf-8",
+    ) as file:
+        loaded_features = json.load(
+            file
+        )
+
+    assert loaded_model is not None
+    assert loaded_scaler is not None
+
+    assert loaded_features == [
+        "feature_a",
+        "feature_b",
+    ]

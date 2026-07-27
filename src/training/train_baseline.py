@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
@@ -237,3 +240,47 @@ def train_logistic_baseline(
             test_probabilities
         ),
     )
+
+
+def save_baseline_artifacts(
+    result: BaselineTrainingResult,
+    model_path: str | Path,
+    scaler_path: str | Path,
+    feature_names_path: str | Path,
+) -> None:
+    """
+    Save the trained model, scaler and ordered feature names.
+    """
+    model_file = Path(model_path)
+    scaler_file = Path(scaler_path)
+    feature_file = Path(feature_names_path)
+
+    for path in [
+        model_file,
+        scaler_file,
+        feature_file,
+    ]:
+        path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+    joblib.dump(
+        result.model,
+        model_file,
+    )
+
+    joblib.dump(
+        result.scaler,
+        scaler_file,
+    )
+
+    with feature_file.open(
+        "w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(
+            list(result.feature_columns),
+            file,
+            indent=2,
+        )

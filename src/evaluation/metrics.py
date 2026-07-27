@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from typing import Any
+import json
+from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import (
@@ -318,3 +320,27 @@ def calculate_attack_type_recall(
         )
 
     return result
+
+def save_metrics_report(
+    report: dict[str, Any],
+    output_path: str | Path,
+) -> None:
+    """
+    Save a metrics dictionary as formatted JSON.
+    """
+    path = Path(output_path)
+
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    with path.open(
+        "w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(
+            report,
+            file,
+            indent=2,
+        )

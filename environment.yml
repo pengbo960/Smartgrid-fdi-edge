@@ -8,6 +8,7 @@ dependencies:
   - pyyaml
   - pytest
   - scikit-learn
+  - joblib
   - pip
   - pip:
       - paho-mqtt
