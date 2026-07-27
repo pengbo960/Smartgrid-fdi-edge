@@ -29,6 +29,8 @@ model:
   class_weight: balanced
   max_iter: 1000
   random_seed: 42
+  default_threshold: 0.5
+  threshold_metric: macro_f1
 
 output:
   model_path: models/logistic_baseline.joblib
@@ -36,3 +38,8 @@ output:
   feature_names_path: models/logistic_baseline_features.json
   metrics_path: results/metrics/logistic_baseline_metrics.json
   predictions_path: results/predictions/logistic_baseline_predictions.csv
+
+  confusion_matrix_path: results/figures/logistic_baseline_confusion_matrix.png
+  roc_curve_path: results/figures/logistic_baseline_roc_curve.png
+  pr_curve_path: results/figures/logistic_baseline_pr_curve.png
+  threshold_curve_path: results/figures/logistic_baseline_threshold_curve.png

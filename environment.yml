@@ -9,6 +9,7 @@ dependencies:
   - pytest
   - scikit-learn
   - joblib
+  - matplotlib
   - pip
   - pip:
       - paho-mqtt

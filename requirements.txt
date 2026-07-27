@@ -5,3 +5,4 @@ pyyaml
 pytest
 scikit-learn
 joblib
+matplotlib

@@ -12,6 +12,16 @@ from src.evaluation.metrics import (
     calculate_binary_metrics,
     save_metrics_report,
 )
+from src.evaluation.thresholds import (
+    predictions_from_probabilities,
+    search_best_threshold,
+)
+from src.evaluation.visualization import (
+    save_confusion_matrix,
+    save_precision_recall_curve,
+    save_roc_curve,
+    save_threshold_curve,
+)
 from src.training.prepare_dataset import (
     load_feature_dataset,
     prepare_known_attack_dataset,
@@ -28,11 +38,19 @@ from src.training.train_baseline import (
 def load_config(
     path: str | Path,
 ) -> dict[str, Any]:
+    """
+    Load the baseline YAML configuration.
+    """
     config_path = Path(path)
 
     if not config_path.exists():
         raise FileNotFoundError(
             f"Baseline config not found: {config_path}"
+        )
+
+    if not config_path.is_file():
+        raise ValueError(
+            f"Baseline config path is not a file: {config_path}"
         )
 
     with config_path.open(
@@ -52,7 +70,7 @@ def load_config(
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Train and evaluate the Logistic Regression baseline."
+            "Train, evaluate and save the Logistic Regression baseline."
         )
     )
 
@@ -67,13 +85,24 @@ def parse_arguments() -> argparse.Namespace:
 
 def build_predictions_dataframe(
     source_frame: pd.DataFrame,
-    y_true,
-    y_pred,
-    probabilities,
+    y_true: Any,
+    y_pred: Any,
+    probabilities: Any,
 ) -> pd.DataFrame:
     """
-    Build a test prediction table with metadata.
+    Build a prediction table containing source metadata and results.
     """
+    if not (
+        len(source_frame)
+        == len(y_true)
+        == len(y_pred)
+        == len(probabilities)
+    ):
+        raise ValueError(
+            "source_frame, y_true, y_pred and probabilities "
+            "must have the same length"
+        )
+
     metadata_columns = [
         column
         for column in [
@@ -87,13 +116,20 @@ def build_predictions_dataframe(
         if column in source_frame.columns
     ]
 
-    predictions = source_frame[
-        metadata_columns
-    ].copy()
+    predictions = (
+        source_frame[
+            metadata_columns
+        ]
+        .reset_index(drop=True)
+        .copy()
+    )
 
     predictions["true_label"] = y_true
     predictions["predicted_label"] = y_pred
-    predictions["attack_probability"] = probabilities
+    predictions["attack_probability"] = (
+        probabilities
+    )
+
     predictions["is_correct"] = (
         predictions["true_label"]
         == predictions["predicted_label"]
@@ -106,6 +142,9 @@ def print_metrics(
     split_name: str,
     metrics: dict[str, Any],
 ) -> None:
+    """
+    Print one split's metrics in a readable form.
+    """
     print(f"\n{split_name}")
 
     for key, value in metrics.items():
@@ -130,7 +169,9 @@ def main() -> None:
     labels_config = config["labels"]
     feature_config = config["features"]
     split_config = config["split"]
-    preprocessing_config = config["preprocessing"]
+    preprocessing_config = config[
+        "preprocessing"
+    ]
     model_config = config["model"]
     output_config = config["output"]
 
@@ -151,17 +192,23 @@ def main() -> None:
                 [],
             )
         ),
-        target_column=labels_config.get(
-            "target_column",
-            "is_attack",
+        target_column=(
+            labels_config.get(
+                "target_column",
+                "is_attack",
+            )
         ),
-        group_column=split_config.get(
-            "group_column",
-            "source_file",
+        group_column=(
+            split_config.get(
+                "group_column",
+                "source_file",
+            )
         ),
-        include_groups=feature_config[
-            "include_groups"
-        ],
+        include_groups=(
+            feature_config[
+                "include_groups"
+            ]
+        ),
         drop_warmup_rows=(
             preprocessing_config.get(
                 "drop_warmup_rows",
@@ -176,22 +223,26 @@ def main() -> None:
         ),
     )
 
-    split = split_stratified_grouped_dataset(
-        prepared=prepared,
-        random_seed=int(
-            split_config.get(
-                "random_seed",
-                42,
-            )
-        ),
+    split = (
+        split_stratified_grouped_dataset(
+            prepared=prepared,
+            random_seed=int(
+                split_config.get(
+                    "random_seed",
+                    42,
+                )
+            ),
+        )
     )
 
     result = train_logistic_baseline(
         prepared=prepared,
         split=split,
-        class_weight=model_config.get(
-            "class_weight",
-            "balanced",
+        class_weight=(
+            model_config.get(
+                "class_weight",
+                "balanced",
+            )
         ),
         max_iter=int(
             model_config.get(
@@ -207,22 +258,88 @@ def main() -> None:
         ),
     )
 
-    train_metrics = calculate_binary_metrics(
-        y_true=result.y_train,
-        y_pred=result.train_predictions,
-        probabilities=result.train_probabilities,
+    default_threshold = float(
+        model_config.get(
+            "default_threshold",
+            0.5,
+        )
     )
 
-    validation_metrics = calculate_binary_metrics(
-        y_true=result.y_validation,
-        y_pred=result.validation_predictions,
-        probabilities=result.validation_probabilities,
+    threshold_metric = str(
+        model_config.get(
+            "threshold_metric",
+            "macro_f1",
+        )
+    )
+
+    best_threshold, threshold_evaluations = (
+        search_best_threshold(
+            y_true=result.y_validation,
+            probabilities=(
+                result.validation_probabilities
+            ),
+            metric=threshold_metric,
+            reference_threshold=(
+                default_threshold
+            ),
+        )
+    )
+
+    selected_threshold = (
+        best_threshold.threshold
+    )
+
+    train_predictions = (
+        predictions_from_probabilities(
+            probabilities=(
+                result.train_probabilities
+            ),
+            threshold=selected_threshold,
+        )
+    )
+
+    validation_predictions = (
+        predictions_from_probabilities(
+            probabilities=(
+                result.validation_probabilities
+            ),
+            threshold=selected_threshold,
+        )
+    )
+
+    test_predictions = (
+        predictions_from_probabilities(
+            probabilities=(
+                result.test_probabilities
+            ),
+            threshold=selected_threshold,
+        )
+    )
+
+    train_metrics = calculate_binary_metrics(
+        y_true=result.y_train,
+        y_pred=train_predictions,
+        probabilities=(
+            result.train_probabilities
+        ),
+    )
+
+    validation_metrics = (
+        calculate_binary_metrics(
+            y_true=result.y_validation,
+            y_pred=validation_predictions,
+            probabilities=(
+                result.validation_probabilities
+            ),
+        )
     )
 
     test_metrics = calculate_binary_metrics(
         y_true=result.y_test,
-        y_pred=result.test_predictions,
-        probabilities=result.test_probabilities,
+        y_pred=test_predictions,
+        probabilities=(
+            result.test_probabilities
+        ),
     )
 
     attack_type_recall = (
@@ -233,7 +350,7 @@ def main() -> None:
                 ].to_numpy()
             ),
             y_true=result.y_test,
-            y_pred=result.test_predictions,
+            y_pred=test_predictions,
         )
     )
 
@@ -243,7 +360,7 @@ def main() -> None:
             "feature_count": len(
                 result.feature_columns
             ),
-            "feature_groups": (
+            "feature_groups": list(
                 feature_config[
                     "include_groups"
                 ]
@@ -265,6 +382,34 @@ def main() -> None:
                 .astype(int)
                 .tolist()
             ),
+            "default_threshold": (
+                default_threshold
+            ),
+            "selected_threshold": (
+                selected_threshold
+            ),
+            "threshold_metric": (
+                threshold_metric
+            ),
+            "validation_threshold_metrics": {
+                "accuracy": (
+                    best_threshold.accuracy
+                ),
+                "precision": (
+                    best_threshold.precision
+                ),
+                "recall": (
+                    best_threshold.recall
+                ),
+                "f1": best_threshold.f1,
+                "macro_f1": (
+                    best_threshold.macro_f1
+                ),
+                "false_positive_rate": (
+                    best_threshold
+                    .false_positive_rate
+                ),
+            },
         },
         "dataset": {
             "train_rows": len(
@@ -299,10 +444,14 @@ def main() -> None:
     save_baseline_artifacts(
         result=result,
         model_path=(
-            output_config["model_path"]
+            output_config[
+                "model_path"
+            ]
         ),
         scaler_path=(
-            output_config["scaler_path"]
+            output_config[
+                "scaler_path"
+            ]
         ),
         feature_names_path=(
             output_config[
@@ -314,7 +463,9 @@ def main() -> None:
     save_metrics_report(
         report=metrics_report,
         output_path=(
-            output_config["metrics_path"]
+            output_config[
+                "metrics_path"
+            ]
         ),
     )
 
@@ -322,7 +473,7 @@ def main() -> None:
         build_predictions_dataframe(
             source_frame=split.test,
             y_true=result.y_test,
-            y_pred=result.test_predictions,
+            y_pred=test_predictions,
             probabilities=(
                 result.test_probabilities
             ),
@@ -343,6 +494,85 @@ def main() -> None:
     predictions.to_csv(
         predictions_path,
         index=False,
+    )
+
+    save_confusion_matrix(
+        y_true=result.y_test,
+        y_pred=test_predictions,
+        output_path=(
+            output_config[
+                "confusion_matrix_path"
+            ]
+        ),
+        title=(
+            "Logistic Regression "
+            "Test Confusion Matrix"
+        ),
+    )
+
+    save_roc_curve(
+        y_true=result.y_test,
+        probabilities=(
+            result.test_probabilities
+        ),
+        output_path=(
+            output_config[
+                "roc_curve_path"
+            ]
+        ),
+        title=(
+            "Logistic Regression "
+            "Test ROC Curve"
+        ),
+    )
+
+    save_precision_recall_curve(
+        y_true=result.y_test,
+        probabilities=(
+            result.test_probabilities
+        ),
+        output_path=(
+            output_config[
+                "pr_curve_path"
+            ]
+        ),
+        title=(
+            "Logistic Regression "
+            "Test Precision-Recall Curve"
+        ),
+    )
+
+    save_threshold_curve(
+        evaluations=(
+            threshold_evaluations
+        ),
+        selected_threshold=(
+            selected_threshold
+        ),
+        output_path=(
+            output_config[
+                "threshold_curve_path"
+            ]
+        ),
+    )
+
+    print(
+        "\nThreshold selection:"
+    )
+
+    print(
+        f"Default threshold: "
+        f"{default_threshold:.2f}"
+    )
+
+    print(
+        f"Selected threshold: "
+        f"{selected_threshold:.2f}"
+    )
+
+    print(
+        f"Validation {threshold_metric}: "
+        f"{getattr(best_threshold, threshold_metric):.6f}"
     )
 
     print_metrics(
@@ -374,14 +604,18 @@ def main() -> None:
 
     print("\nSaved artifacts:")
 
-    for label, path in [
+    saved_artifacts = [
         (
             "Model",
-            output_config["model_path"],
+            output_config[
+                "model_path"
+            ],
         ),
         (
             "Scaler",
-            output_config["scaler_path"],
+            output_config[
+                "scaler_path"
+            ],
         ),
         (
             "Feature names",
@@ -401,7 +635,33 @@ def main() -> None:
                 "predictions_path"
             ],
         ),
-    ]:
+        (
+            "Confusion matrix",
+            output_config[
+                "confusion_matrix_path"
+            ],
+        ),
+        (
+            "ROC curve",
+            output_config[
+                "roc_curve_path"
+            ],
+        ),
+        (
+            "PR curve",
+            output_config[
+                "pr_curve_path"
+            ],
+        ),
+        (
+            "Threshold curve",
+            output_config[
+                "threshold_curve_path"
+            ],
+        ),
+    ]
+
+    for label, path in saved_artifacts:
         print(
             f"{label}: {path}"
         )
