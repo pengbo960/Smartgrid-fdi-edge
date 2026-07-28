@@ -18,6 +18,23 @@ ATTACK_SETTINGS: dict[str, dict[str, Any]] = {
     "gradual": {
         "attack_type": "gradual",
     },
+    "replay": {
+        "attack_type": "replay",
+        "replay_lag_steps": 10,
+    },
+    "topic_spoof": {
+        "attack_type": "topic_spoof",
+        "spoofed_device_id": "meter_01",
+    },
+}
+
+SEED_BASES = {
+    "normal": 100,
+    "constant": 200,
+    "random": 300,
+    "gradual": 400,
+    "replay": 500,
+    "topic_spoof": 600,
 }
 
 
@@ -27,19 +44,32 @@ def build_scenario(
     duration: float,
     interval: float,
 ) -> dict[str, Any]:
+    if scenario_type not in ATTACK_SETTINGS:
+        raise ValueError(
+            f"Unsupported scenario type: {scenario_type}"
+        )
+
+    if run_number <= 0:
+        raise ValueError(
+            "run_number must be greater than zero"
+        )
+
+    if duration <= 0:
+        raise ValueError(
+            "duration must be greater than zero"
+        )
+
+    if interval <= 0:
+        raise ValueError(
+            "interval must be greater than zero"
+        )
+
     scenario_id = (
         f"{scenario_type}_run_{run_number:02d}"
     )
 
-    seed_bases = {
-        "normal": 100,
-        "constant": 200,
-        "random": 300,
-        "gradual": 400,
-    }
-
     random_seed = (
-        seed_bases[scenario_type]
+        SEED_BASES[scenario_type]
         + run_number
     )
 
@@ -55,6 +85,12 @@ def build_scenario(
         total_steps * 0.75
     )
 
+    if attack_end <= attack_start:
+        raise ValueError(
+            "Scenario duration and interval do not "
+            "provide a valid attack window"
+        )
+
     config: dict[str, Any] = {
         "scenario": {
             "scenario_id": scenario_id,
@@ -66,19 +102,33 @@ def build_scenario(
     }
 
     if scenario_type != "normal":
-        attack_config = {
+        attack_config: dict[str, Any] = {
             "device_id": "meter_02",
-            "attack_type": ATTACK_SETTINGS[
-                scenario_type
-            ]["attack_type"],
             "start_step": attack_start,
             "end_step": attack_end,
         }
+
+        attack_config.update(
+            ATTACK_SETTINGS[scenario_type]
+        )
 
         if scenario_type == "random":
             attack_config["random_seed"] = (
                 1000 + random_seed
             )
+
+        if scenario_type == "replay":
+            replay_lag_steps = int(
+                attack_config[
+                    "replay_lag_steps"
+                ]
+            )
+
+            if attack_start < replay_lag_steps:
+                raise ValueError(
+                    "Replay attack window starts before "
+                    "enough history can be captured"
+                )
 
         config["attacks"].append(
             attack_config

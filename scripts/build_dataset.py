@@ -153,8 +153,13 @@ def main() -> None:
     )
 
     print(
-        f"Duplicate rows: "
+        f"Unexpected duplicate rows: "
         f"{report['duplicate_rows']}"
+    )
+
+    print(
+        f"Expected replay duplicate rows: "
+        f"{report['replay_duplicate_rows']}"
     )
 
     print(

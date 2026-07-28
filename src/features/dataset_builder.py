@@ -113,13 +113,29 @@ class FeatureDatasetBuilder:
                 "Feature dataset missing attack_type"
             )
 
+        duplicate_mask = dataframe.duplicated(
+            subset=[
+                "source_file",
+                "device_id",
+                "sequence_number",
+            ]
+        )
+
+        replay_duplicate_mask = (
+            duplicate_mask
+            & dataframe["attack_type"]
+            .astype(str)
+            .eq("replay")
+        )
+
+        replay_duplicate_rows = int(
+            replay_duplicate_mask.sum()
+        )
+
         duplicate_rows = int(
-            dataframe.duplicated(
-                subset=[
-                    "source_file",
-                    "device_id",
-                    "sequence_number",
-                ]
+            (
+                duplicate_mask
+                & ~replay_duplicate_mask
             ).sum()
         )
 
@@ -160,6 +176,9 @@ class FeatureDatasetBuilder:
                 dataframe.columns
             ),
             "duplicate_rows": duplicate_rows,
+            "replay_duplicate_rows": (
+                replay_duplicate_rows
+            ),
             "missing_by_column": (
                 missing_by_column
             ),

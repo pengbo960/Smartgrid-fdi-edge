@@ -41,19 +41,32 @@ def validate_file(path: Path) -> bool:
         problems.append("empty dataset")
 
     if not missing_columns:
+        duplicate_mask = dataframe.duplicated(
+            subset=[
+                "scenario_id",
+                "device_id",
+                "sequence_number",
+            ]
+        )
+
+        replay_duplicate_mask = (
+            duplicate_mask
+            & dataframe["attack_type"]
+            .astype(str)
+            .eq("replay")
+        )
+
         duplicate_count = int(
-            dataframe.duplicated(
-                subset=[
-                    "scenario_id",
-                    "device_id",
-                    "sequence_number",
-                ]
+            (
+                duplicate_mask
+                & ~replay_duplicate_mask
             ).sum()
         )
 
         if duplicate_count:
             problems.append(
-                f"{duplicate_count} duplicate rows"
+                f"{duplicate_count} unexpected "
+                "duplicate rows"
             )
 
         device_counts = (

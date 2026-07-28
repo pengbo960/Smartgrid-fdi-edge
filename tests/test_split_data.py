@@ -92,6 +92,20 @@ def test_infer_scenario_type() -> None:
         == "random"
     )
 
+    assert (
+        infer_scenario_type(
+            "replay_run_04.csv"
+        )
+        == "replay"
+    )
+
+    assert (
+        infer_scenario_type(
+            "topic_spoof_run_05.csv"
+        )
+        == "topic_spoof"
+    )
+
 
 def test_unknown_scenario_filename_is_rejected() -> None:
     with pytest.raises(

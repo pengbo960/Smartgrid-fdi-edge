@@ -27,7 +27,7 @@ test:
 
 scenarios:
 	$(PYTHON) scripts/generate_scenarios.py \
-		--runs 3 \
+		--runs 5 \
 		--duration 300 \
 		--interval 0.5 \
 		--output-dir $(SCENARIO_DIR)

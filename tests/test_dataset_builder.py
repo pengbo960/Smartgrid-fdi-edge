@@ -238,6 +238,7 @@ def test_validate_output_creates_report() -> None:
     assert report["row_count"] == 2
     assert report["column_count"] == 6
     assert report["duplicate_rows"] == 0
+    assert report["replay_duplicate_rows"] == 0
 
     assert report[
         "attack_distribution"
@@ -279,6 +280,42 @@ def test_validate_output_detects_duplicates() -> None:
     )
 
     assert report["duplicate_rows"] == 1
+    assert report["replay_duplicate_rows"] == 0
+
+
+def test_validate_output_accepts_replay_duplicates() -> None:
+    dataframe = pd.DataFrame(
+        {
+            "source_file": [
+                "replay_run_01.csv",
+                "replay_run_01.csv",
+            ],
+            "device_id": [
+                "meter_02",
+                "meter_02",
+            ],
+            "sequence_number": [
+                10,
+                10,
+            ],
+            "attack_type": [
+                "none",
+                "replay",
+            ],
+            "is_attack": [
+                0,
+                1,
+            ],
+        }
+    )
+
+    report = (
+        FeatureDatasetBuilder
+        .validate_output(dataframe)
+    )
+
+    assert report["duplicate_rows"] == 0
+    assert report["replay_duplicate_rows"] == 1
 
 
 def test_missing_input_directory_is_rejected(

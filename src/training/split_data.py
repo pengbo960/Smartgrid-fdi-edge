@@ -15,6 +15,8 @@ KNOWN_SCENARIO_TYPES = (
     "constant",
     "random",
     "gradual",
+    "replay",
+    "topic_spoof",
 )
 
 
@@ -39,6 +41,8 @@ def infer_scenario_type(
         constant_run_02.csv
         random_run_03.csv
         gradual_run_04.csv
+        replay_run_05.csv
+        topic_spoof_run_05.csv
     """
     filename = str(source_file).strip().lower()
 
