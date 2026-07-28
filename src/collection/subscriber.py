@@ -6,6 +6,10 @@ from typing import Any, Callable
 
 import paho.mqtt.client as mqtt
 
+from src.collection.payload_metadata import (
+    calculate_operational_payload_size,
+)
+
 
 MessageHandler = Callable[[dict[str, Any]], None]
 
@@ -165,7 +169,11 @@ class MqttSubscriber:
                 "topic": message.topic,
                 "qos": message.qos,
                 "retain": int(message.retain),
-                "payload_size": len(message.payload),
+                "payload_size": (
+                    calculate_operational_payload_size(
+                        payload
+                    )
+                ),
                 "sequence_number": payload.get(
                     "sequence_number",
                     "",

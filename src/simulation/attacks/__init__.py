@@ -10,13 +10,25 @@ from src.simulation.attacks.gradual import (
 from src.simulation.attacks.random_attack import (
     RandomAttack,
 )
+from src.simulation.attacks.replay import (
+    ReplayBuffer,
+)
 
 
-SUPPORTED_ATTACKS = {
+VALUE_ATTACKS = {
     "constant",
     "random",
     "gradual",
 }
+
+COMMUNICATION_ATTACKS = {
+    "replay",
+}
+
+SUPPORTED_ATTACKS = (
+    VALUE_ATTACKS
+    | COMMUNICATION_ATTACKS
+)
 
 
 def create_attack(
@@ -24,7 +36,10 @@ def create_attack(
     random_seed: int = 42,
 ) -> Attack:
     """
-    Create an attack implementation from its configuration name.
+    Create a value-manipulation attack.
+
+    Communication attacks such as replay are handled by the simulator
+    because they operate on complete messages rather than measurements.
     """
     if attack_type == "constant":
         return ConstantAttack()
@@ -37,6 +52,12 @@ def create_attack(
     if attack_type == "gradual":
         return GradualAttack()
 
+    if attack_type in COMMUNICATION_ATTACKS:
+        raise ValueError(
+            f"{attack_type} is a communication attack "
+            "and cannot be created by create_attack"
+        )
+
     raise ValueError(
         f"Unsupported attack type: {attack_type}"
     )
@@ -47,6 +68,9 @@ __all__ = [
     "ConstantAttack",
     "RandomAttack",
     "GradualAttack",
+    "ReplayBuffer",
+    "VALUE_ATTACKS",
+    "COMMUNICATION_ATTACKS",
     "SUPPORTED_ATTACKS",
     "create_attack",
 ]

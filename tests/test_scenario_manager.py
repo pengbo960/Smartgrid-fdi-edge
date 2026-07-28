@@ -208,3 +208,102 @@ def test_invalid_attack_period_is_rejected() -> None:
             start_step=10,
             end_step=10,
         )
+
+
+def build_replay_scenario() -> ScenarioConfig:
+    return ScenarioConfig(
+        scenario_id="replay_test",
+        duration=20,
+        publish_interval=1.0,
+        random_seed=42,
+        attacks=(
+            AttackSchedule(
+                device_id="meter_02",
+                attack_type="replay",
+                start_step=5,
+                end_step=10,
+                replay_lag_steps=3,
+            ),
+        ),
+    )
+
+
+def test_replay_schedule_requires_lag_steps() -> None:
+    with pytest.raises(
+        ValueError,
+        match="replay_lag_steps",
+    ):
+        AttackSchedule(
+            device_id="meter_02",
+            attack_type="replay",
+            start_step=5,
+            end_step=10,
+        )
+
+
+def test_build_replay_scenario_config() -> None:
+    scenario = build_scenario_config(
+        {
+            "scenario": {
+                "scenario_id": "replay_test",
+                "duration": 20,
+                "publish_interval": 1.0,
+                "random_seed": 42,
+            },
+            "attacks": [
+                {
+                    "device_id": "meter_02",
+                    "attack_type": "replay",
+                    "start_step": 5,
+                    "end_step": 10,
+                    "replay_lag_steps": 3,
+                }
+            ],
+        }
+    )
+
+    assert scenario.attacks[0].attack_type == "replay"
+    assert scenario.attacks[0].replay_lag_steps == 3
+
+
+def test_get_active_replay_schedule() -> None:
+    manager = ScenarioManager(
+        build_replay_scenario()
+    )
+
+    assert manager.get_active_schedule(
+        "meter_02",
+        4,
+    ) is None
+
+    active = manager.get_active_schedule(
+        "meter_02",
+        5,
+    )
+
+    assert active is not None
+    assert active.attack_type == "replay"
+    assert active.replay_lag_steps == 3
+    assert manager.get_active_schedule(
+        "meter_02",
+        10,
+    ) is None
+
+
+def test_replay_is_not_applied_as_value_attack() -> None:
+    manager = ScenarioManager(
+        build_replay_scenario()
+    )
+    measurements = normal_measurements()
+
+    result = manager.apply(
+        device_id="meter_02",
+        step=5,
+        measurements=measurements,
+    )
+
+    assert result.attack_type == "none"
+    assert result.is_attack == 0
+    assert result.attack_step is None
+    assert result.measurements == measurements
+    assert result.measurements is not measurements

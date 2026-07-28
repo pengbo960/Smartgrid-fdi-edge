@@ -3,7 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from src.simulation.attacks import Attack, create_attack
+from src.simulation.attacks import (
+    Attack,
+    VALUE_ATTACKS,
+    create_attack,
+)
 from src.simulation.attacks.base import Measurements
 
 
@@ -18,6 +22,7 @@ class AttackSchedule:
     start_step: int
     end_step: int
     random_seed: int = 42
+    replay_lag_steps: int | None = None
 
     def __post_init__(self) -> None:
         if not self.device_id:
@@ -34,6 +39,16 @@ class AttackSchedule:
             raise ValueError(
                 "end_step must be greater than start_step"
             )
+
+        if self.attack_type == "replay":
+            if (
+                self.replay_lag_steps is None
+                or self.replay_lag_steps <= 0
+            ):
+                raise ValueError(
+                    "replay_lag_steps must be greater "
+                    "than zero for replay attacks"
+                )
 
 
 @dataclass(frozen=True)
@@ -68,11 +83,13 @@ class ScenarioConfig:
 @dataclass
 class AttackRuntime:
     """
-    Runtime state for one configured attack.
+    Runtime representation of one configured attack.
+
+    Communication attacks do not use a value Attack object.
     """
 
     schedule: AttackSchedule
-    attack: Attack
+    attack: Attack | None
 
 
 @dataclass(frozen=True)
@@ -104,12 +121,17 @@ class ScenarioManager:
         ] = {}
 
         for schedule in scenario.attacks:
-            runtime = AttackRuntime(
-                schedule=schedule,
-                attack=create_attack(
+            attack: Attack | None = None
+
+            if schedule.attack_type in VALUE_ATTACKS:
+                attack = create_attack(
                     attack_type=schedule.attack_type,
                     random_seed=schedule.random_seed,
-                ),
+                )
+
+            runtime = AttackRuntime(
+                schedule=schedule,
+                attack=attack,
             )
 
             self._attacks_by_device.setdefault(
@@ -141,6 +163,36 @@ class ScenarioManager:
                         f"for device {device_id}"
                     )
 
+    def get_active_schedule(
+        self,
+        device_id: str,
+        step: int,
+    ) -> AttackSchedule | None:
+        """
+        Return the active attack schedule for a device and step.
+        """
+        if step < 0:
+            raise ValueError(
+                "step must be zero or greater"
+            )
+
+        runtimes = self._attacks_by_device.get(
+            device_id,
+            [],
+        )
+
+        for runtime in runtimes:
+            schedule = runtime.schedule
+
+            if (
+                schedule.start_step
+                <= step
+                < schedule.end_step
+            ):
+                return schedule
+
+        return None
+
     def apply(
         self,
         device_id: str,
@@ -168,6 +220,20 @@ class ScenarioManager:
                 <= step
                 < schedule.end_step
             ):
+                if schedule.attack_type not in VALUE_ATTACKS:
+                    return ScenarioResult(
+                        measurements=measurements.copy(),
+                        attack_type="none",
+                        is_attack=0,
+                        attack_step=None,
+                    )
+
+                if runtime.attack is None:
+                    raise RuntimeError(
+                        "Value attack runtime is missing "
+                        "its attack implementation"
+                    )
+
                 attack_step = (
                     step - schedule.start_step
                 )
@@ -223,6 +289,10 @@ def build_attack_schedule(
             f"{sorted(missing_fields)}"
         )
 
+    replay_lag_value = raw_config.get(
+        "replay_lag_steps"
+    )
+
     return AttackSchedule(
         device_id=str(
             raw_config["device_id"]
@@ -241,6 +311,11 @@ def build_attack_schedule(
                 "random_seed",
                 default_seed,
             )
+        ),
+        replay_lag_steps=(
+            int(replay_lag_value)
+            if replay_lag_value is not None
+            else None
         ),
     )
 
