@@ -23,6 +23,7 @@ class AttackSchedule:
     end_step: int
     random_seed: int = 42
     replay_lag_steps: int | None = None
+    spoofed_device_id: str | None = None
 
     def __post_init__(self) -> None:
         if not self.device_id:
@@ -49,6 +50,23 @@ class AttackSchedule:
                     "replay_lag_steps must be greater "
                     "than zero for replay attacks"
                 )
+
+        if (
+            self.attack_type == "topic_spoof"
+            and not self.spoofed_device_id
+        ):
+            raise ValueError(
+                "spoofed_device_id is required "
+                "for topic_spoof attacks"
+            )
+
+        if (
+            self.attack_type == "topic_spoof"
+            and self.spoofed_device_id == self.device_id
+        ):
+            raise ValueError(
+                "spoofed_device_id must differ from device_id"
+            )
 
 
 @dataclass(frozen=True)
@@ -292,6 +310,9 @@ def build_attack_schedule(
     replay_lag_value = raw_config.get(
         "replay_lag_steps"
     )
+    spoofed_device_value = raw_config.get(
+        "spoofed_device_id"
+    )
 
     return AttackSchedule(
         device_id=str(
@@ -315,6 +336,11 @@ def build_attack_schedule(
         replay_lag_steps=(
             int(replay_lag_value)
             if replay_lag_value is not None
+            else None
+        ),
+        spoofed_device_id=(
+            str(spoofed_device_value).strip()
+            if spoofed_device_value is not None
             else None
         ),
     )

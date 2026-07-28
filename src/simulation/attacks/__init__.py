@@ -23,6 +23,7 @@ VALUE_ATTACKS = {
 
 COMMUNICATION_ATTACKS = {
     "replay",
+    "topic_spoof",
 }
 
 SUPPORTED_ATTACKS = (

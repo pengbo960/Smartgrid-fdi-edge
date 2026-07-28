@@ -307,3 +307,106 @@ def test_replay_is_not_applied_as_value_attack() -> None:
     assert result.attack_step is None
     assert result.measurements == measurements
     assert result.measurements is not measurements
+
+
+def build_topic_spoof_scenario() -> ScenarioConfig:
+    return ScenarioConfig(
+        scenario_id="topic_spoof_test",
+        duration=20,
+        publish_interval=1.0,
+        random_seed=42,
+        attacks=(
+            AttackSchedule(
+                device_id="meter_02",
+                attack_type="topic_spoof",
+                start_step=5,
+                end_step=10,
+                spoofed_device_id="meter_01",
+            ),
+        ),
+    )
+
+
+def test_topic_spoof_requires_target_device() -> None:
+    with pytest.raises(
+        ValueError,
+        match="spoofed_device_id",
+    ):
+        AttackSchedule(
+            device_id="meter_02",
+            attack_type="topic_spoof",
+            start_step=5,
+            end_step=10,
+        )
+
+
+def test_topic_spoof_target_must_differ() -> None:
+    with pytest.raises(
+        ValueError,
+        match="must differ",
+    ):
+        AttackSchedule(
+            device_id="meter_02",
+            attack_type="topic_spoof",
+            start_step=5,
+            end_step=10,
+            spoofed_device_id="meter_02",
+        )
+
+
+def test_build_topic_spoof_scenario_config() -> None:
+    scenario = build_scenario_config(
+        {
+            "scenario": {
+                "scenario_id": "topic_spoof_test",
+                "duration": 20,
+                "publish_interval": 1.0,
+                "random_seed": 42,
+            },
+            "attacks": [
+                {
+                    "device_id": "meter_02",
+                    "attack_type": "topic_spoof",
+                    "start_step": 5,
+                    "end_step": 10,
+                    "spoofed_device_id": "meter_01",
+                }
+            ],
+        }
+    )
+
+    schedule = scenario.attacks[0]
+    assert schedule.attack_type == "topic_spoof"
+    assert schedule.spoofed_device_id == "meter_01"
+
+
+def test_get_active_topic_spoof_schedule() -> None:
+    manager = ScenarioManager(
+        build_topic_spoof_scenario()
+    )
+
+    active = manager.get_active_schedule(
+        device_id="meter_02",
+        step=5,
+    )
+
+    assert active is not None
+    assert active.attack_type == "topic_spoof"
+    assert active.spoofed_device_id == "meter_01"
+
+
+def test_topic_spoof_is_not_applied_as_value_attack() -> None:
+    manager = ScenarioManager(
+        build_topic_spoof_scenario()
+    )
+    measurements = normal_measurements()
+
+    result = manager.apply(
+        device_id="meter_02",
+        step=5,
+        measurements=measurements,
+    )
+
+    assert result.attack_type == "none"
+    assert result.is_attack == 0
+    assert result.measurements == measurements

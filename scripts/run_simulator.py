@@ -10,6 +10,10 @@ from typing import Any
 
 from src.common.config import load_yaml_config
 from src.simulation.attacks.replay import ReplayBuffer
+from src.simulation.message_context import (
+    MessageContext,
+    apply_topic_spoof,
+)
 from src.simulation.publisher import MqttPublisher
 from src.simulation.scenario_manager import (
     ScenarioManager,
@@ -267,6 +271,34 @@ def main() -> None:
                     )
                     payload["client_id"] = client_id
                     payload["attack_type"] = "replay"
+                    payload["is_attack"] = 1
+                    payload["attack_step"] = (
+                        step - active_schedule.start_step
+                    )
+                elif (
+                    active_schedule is not None
+                    and active_schedule.attack_type
+                    == "topic_spoof"
+                ):
+                    spoofed_device_id = (
+                        active_schedule.spoofed_device_id
+                    )
+
+                    if spoofed_device_id is None:
+                        raise RuntimeError(
+                            "Topic spoof schedule is missing "
+                            "spoofed_device_id"
+                        )
+
+                    context = apply_topic_spoof(
+                        context=MessageContext(
+                            topic=topic,
+                            client_id=client_id,
+                        ),
+                        spoofed_device_id=spoofed_device_id,
+                    )
+                    topic = context.topic
+                    payload["attack_type"] = "topic_spoof"
                     payload["is_attack"] = 1
                     payload["attack_step"] = (
                         step - active_schedule.start_step
