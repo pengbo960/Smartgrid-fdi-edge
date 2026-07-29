@@ -1,5 +1,5 @@
 dataset:
-  path: data/processed/multiview_dataset.csv
+  path: data/processed/multiview_v2_dataset.csv
 
 labels:
   target_column: is_attack
@@ -8,6 +8,8 @@ labels:
     - none
     - constant
     - random
+    - replay
+    - topic_spoof
 
   excluded_attack_types:
     - gradual
@@ -62,7 +64,7 @@ experiments:
       - protocol
 
 output:
-  metrics_directory: results/ablation/metrics
-  predictions_directory: results/ablation/predictions
-  figures_directory: results/ablation/figures
-  summary_csv: results/ablation/ablation_summary.csv
+  metrics_directory: results/v2/ablation/metrics
+  predictions_directory: results/v2/ablation/predictions
+  figures_directory: results/v2/ablation/figures
+  summary_csv: results/v2/ablation/ablation_summary.csv

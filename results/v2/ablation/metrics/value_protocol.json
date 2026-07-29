@@ -1,0 +1,70 @@
+{
+  "experiment": {
+    "name": "value_protocol",
+    "feature_groups": [
+      "value",
+      "protocol"
+    ],
+    "feature_count": 39,
+    "default_threshold": 0.5,
+    "selected_threshold": 0.67,
+    "threshold_metric": "macro_f1"
+  },
+  "dataset": {
+    "train_rows": 26682,
+    "validation_rows": 8907,
+    "test_rows": 8895,
+    "train_groups": [
+      "constant_run_01.csv",
+      "constant_run_03.csv",
+      "constant_run_04.csv",
+      "normal_run_01.csv",
+      "normal_run_03.csv",
+      "normal_run_04.csv",
+      "random_run_02.csv",
+      "random_run_03.csv",
+      "random_run_05.csv",
+      "replay_run_01.csv",
+      "replay_run_04.csv",
+      "replay_run_05.csv",
+      "topic_spoof_run_01.csv",
+      "topic_spoof_run_02.csv",
+      "topic_spoof_run_05.csv"
+    ],
+    "validation_groups": [
+      "constant_run_02.csv",
+      "normal_run_05.csv",
+      "random_run_01.csv",
+      "replay_run_02.csv",
+      "topic_spoof_run_03.csv"
+    ],
+    "test_groups": [
+      "constant_run_05.csv",
+      "normal_run_02.csv",
+      "random_run_04.csv",
+      "replay_run_03.csv",
+      "topic_spoof_run_04.csv"
+    ]
+  },
+  "test": {
+    "accuracy": 0.9951658234963463,
+    "precision": 0.9824854045037531,
+    "recall": 0.9816666666666667,
+    "f1": 0.9820758649437266,
+    "macro_f1": 0.9896410121937786,
+    "false_positive_rate": 0.0027290448343079924,
+    "specificity": 0.997270955165692,
+    "roc_auc": 0.9993246696989386,
+    "pr_auc": 0.9955660062515429,
+    "true_negative": 7674,
+    "false_positive": 21,
+    "false_negative": 22,
+    "true_positive": 1178
+  },
+  "test_attack_type_recall": {
+    "constant": 1.0,
+    "random": 0.9766666666666667,
+    "replay": 0.95,
+    "topic_spoof": 1.0
+  }
+}

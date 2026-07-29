@@ -171,6 +171,8 @@ def build_result(
         true_positive=18,
         constant_recall=1.0,
         random_recall=0.8,
+        replay_recall=0.95,
+        topic_spoof_recall=1.0,
     )
 
 
@@ -207,6 +209,11 @@ def test_save_ablation_summary(
     assert summary.iloc[1][
         "experiment_name"
     ] == "lower"
+
+    assert {
+        "replay_recall",
+        "topic_spoof_recall",
+    }.issubset(summary.columns)
 
 
 def test_empty_ablation_summary_is_rejected(

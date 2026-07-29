@@ -242,6 +242,8 @@ def main() -> None:
         "false_positive_rate",
         "constant_recall",
         "random_recall",
+        "replay_recall",
+        "topic_spoof_recall",
     ]
 
     print("\nABLATION SUMMARY")

@@ -62,6 +62,8 @@ class AblationExperimentResult:
 
     constant_recall: float | None
     random_recall: float | None
+    replay_recall: float | None
+    topic_spoof_recall: float | None
 
     def to_dict(self) -> dict[str, Any]:
         result = asdict(self)
@@ -491,6 +493,16 @@ def run_ablation_experiment(
         random_recall=(
             attack_type_recall.get(
                 "random"
+            )
+        ),
+        replay_recall=(
+            attack_type_recall.get(
+                "replay"
+            )
+        ),
+        topic_spoof_recall=(
+            attack_type_recall.get(
+                "topic_spoof"
             )
         ),
     )

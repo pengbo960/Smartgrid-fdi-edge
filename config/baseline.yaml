@@ -1,5 +1,5 @@
 dataset:
-  path: data/processed/multiview_dataset.csv
+  path: data/processed/multiview_v2_dataset.csv
 
 labels:
   target_column: is_attack
@@ -8,6 +8,8 @@ labels:
     - none
     - constant
     - random
+    - replay
+    - topic_spoof
 
   excluded_attack_types:
     - gradual
@@ -16,6 +18,7 @@ features:
   include_groups:
     - value
     - temporal
+    - protocol
 
 split:
   group_column: source_file
@@ -33,13 +36,13 @@ model:
   threshold_metric: macro_f1
 
 output:
-  model_path: models/logistic_baseline.joblib
-  scaler_path: models/logistic_baseline_scaler.joblib
-  feature_names_path: models/logistic_baseline_features.json
-  metrics_path: results/metrics/logistic_baseline_metrics.json
-  predictions_path: results/predictions/logistic_baseline_predictions.csv
+  model_path: models/logistic_multiview_v2.joblib
+  scaler_path: models/logistic_multiview_v2_scaler.joblib
+  feature_names_path: models/logistic_multiview_v2_features.json
+  metrics_path: results/v2/metrics/logistic_multiview_metrics.json
+  predictions_path: results/v2/predictions/logistic_multiview_predictions.csv
 
-  confusion_matrix_path: results/figures/logistic_baseline_confusion_matrix.png
-  roc_curve_path: results/figures/logistic_baseline_roc_curve.png
-  pr_curve_path: results/figures/logistic_baseline_pr_curve.png
-  threshold_curve_path: results/figures/logistic_baseline_threshold_curve.png
+  confusion_matrix_path: results/v2/figures/logistic_multiview_confusion_matrix.png
+  roc_curve_path: results/v2/figures/logistic_multiview_roc_curve.png
+  pr_curve_path: results/v2/figures/logistic_multiview_pr_curve.png
+  threshold_curve_path: results/v2/figures/logistic_multiview_threshold_curve.png
