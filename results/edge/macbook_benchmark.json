@@ -1,0 +1,23 @@
+{
+  "platform_label": "macbook_emulated_edge_gateway",
+  "system": "Darwin",
+  "machine": "arm64",
+  "python_version": "3.11.15",
+  "input_file": "data/raw/multiview_v2_runs/gradual_run_01.csv",
+  "processed_messages": 1776,
+  "failed_messages": 0,
+  "elapsed_seconds": 12.020433666883036,
+  "throughput_messages_per_second": 147.74841317855103,
+  "latency_ms": {
+    "mean": 6.763459066073787,
+    "median": 6.763937417417765,
+    "p95": 6.96299021365121,
+    "p99": 7.124291674699634,
+    "maximum": 25.096792029216886
+  },
+  "feature_extraction_ms_mean": 0.4605132739556752,
+  "model_inference_ms_mean": 6.302485122531023,
+  "process_cpu_percent_single_core_equivalent": 99.97299875384714,
+  "peak_memory_mb_before": 164.140625,
+  "peak_memory_mb_after": 165.75
+}

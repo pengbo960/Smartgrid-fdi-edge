@@ -8,7 +8,7 @@ SMOKE_RAW_DIR := data/raw/smoke_runs
 
 PROCESSED_DATASET := data/processed/multiview_dataset.csv
 
-.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set
+.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark
 
 help:
 	@echo "Available commands:"
@@ -22,6 +22,8 @@ help:
 	@echo "  make validate"
 	@echo "  make ablation"
 	@echo "  make open-set"
+	@echo "  make edge-detector"
+	@echo "  make edge-benchmark INPUT=data/raw/training_runs/normal_run_01.csv"
 
 test:
 	$(PYTHON) -m pytest -v
@@ -70,3 +72,12 @@ ablation:
 open-set:
 	$(PYTHON) scripts/train_open_set.py \
 		--config config/open_set.yaml
+
+edge-detector:
+	$(PYTHON) scripts/run_edge_detector.py \
+		--config config/edge.yaml
+
+edge-benchmark:
+	$(PYTHON) scripts/benchmark_edge.py \
+		--config config/edge.yaml \
+		--input $(INPUT)

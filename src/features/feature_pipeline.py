@@ -215,3 +215,84 @@ class FeaturePipeline:
             )
 
         return feature_dataframe
+
+
+class StreamingFeaturePipeline(FeaturePipeline):
+    """Generate features one message at a time with persistent windows."""
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self._manager = WindowManager(
+            window_size=self.window_size
+        )
+
+    def transform_one(
+        self,
+        row: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Transform one raw MQTT row and then add it to history."""
+        missing = {
+            *METADATA_COLUMNS,
+            *RAW_VALUE_COLUMNS,
+            *LABEL_COLUMNS,
+            "qos",
+            "retain",
+            "payload_size",
+        } - row.keys()
+
+        if missing:
+            raise ValueError(
+                "Streaming row is missing required fields: "
+                f"{sorted(missing)}"
+            )
+
+        current_row = row.copy()
+        device_id = str(current_row["device_id"])
+        history = self._manager.get_history(device_id)
+
+        output: dict[str, Any] = {
+            column: current_row[column]
+            for column in METADATA_COLUMNS
+        }
+        output.update(
+            {
+                column: current_row[column]
+                for column in RAW_VALUE_COLUMNS
+            }
+        )
+        output["history_count"] = len(history)
+        output.update(
+            extract_value_features(
+                current_row=current_row,
+                history=history,
+                minimum_history=self.minimum_history,
+                power_factor=self.power_factor,
+            )
+        )
+        output.update(
+            extract_temporal_features(
+                current_row=current_row,
+                history=history,
+                repeated_value_field=self.repeated_value_field,
+                value_tolerance=self.value_tolerance,
+            )
+        )
+        output.update(
+            extract_protocol_features(
+                current_row=current_row,
+                history=history,
+            )
+        )
+        output.update(
+            {
+                column: current_row[column]
+                for column in LABEL_COLUMNS
+            }
+        )
+
+        self._manager.update(current_row)
+        return output
+
+    def clear(self) -> None:
+        """Clear every per-device streaming window."""
+        self._manager.clear_all()

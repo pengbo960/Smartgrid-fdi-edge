@@ -1,0 +1,22 @@
+platform_label: macbook_emulated_edge_gateway
+
+mqtt:
+  client_id: edge-detector-macbook
+
+features:
+  window_size: 20
+  minimum_history: 2
+  power_factor: 0.95
+  repeated_value_field: voltage
+  value_tolerance: 0.000001
+
+artifacts:
+  classifier: models/open_set_known_classifier.joblib
+  scaler: models/open_set_scaler.joblib
+  anomaly_detector: models/open_set_anomaly_detector.joblib
+  metadata: models/open_set_metadata.json
+
+output:
+  detections: results/edge/macbook_detections.csv
+  benchmark: results/edge/macbook_benchmark.json
+  print_normal: false
