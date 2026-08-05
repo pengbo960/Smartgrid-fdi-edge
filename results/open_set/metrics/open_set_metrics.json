@@ -1,0 +1,63 @@
+{
+  "dataset": {
+    "known_train_rows": 26682,
+    "known_validation_rows": 8907,
+    "known_test_rows": 8895,
+    "unseen_test_rows": 1500,
+    "known_classes": [
+      "constant",
+      "none",
+      "random",
+      "replay",
+      "topic_spoof"
+    ],
+    "unseen_attack_type": "gradual"
+  },
+  "thresholds": {
+    "confidence_threshold": 0.9405868973971548,
+    "anomaly_threshold": 0.6101727076964093,
+    "confidence_lower_quantile": 0.01,
+    "anomaly_upper_quantile": 0.99
+  },
+  "known_closed_set": {
+    "accuracy": 0.9991006183249016,
+    "macro_f1": 0.9972382155659976
+  },
+  "known_open_set": {
+    "false_unknown_rate": 0.01854974704890388,
+    "acceptance_rate": 0.9814502529510961,
+    "overall_correct_rate": 0.9813378302417088,
+    "per_class_recall": {
+      "constant": 1.0,
+      "none": 0.979337231968811,
+      "random": 0.9766666666666667,
+      "replay": 1.0,
+      "topic_spoof": 1.0
+    }
+  },
+  "unseen": {
+    "unknown_recall": 0.95,
+    "unknown_precision": 0.8962264150943396,
+    "confidence_only_recall": 0.020666666666666667,
+    "normal_anomaly_recall": 0.942,
+    "known_prediction_distribution": {
+      "none": 1500
+    },
+    "unknown_recall_by_attack_step": {
+      "0-49": 0.7,
+      "50-99": 1.0,
+      "100-149": 1.0,
+      "150-199": 1.0,
+      "200-249": 1.0,
+      "250-299": 1.0
+    },
+    "first_unknown_step_by_source": {
+      "gradual_run_01.csv": 0,
+      "gradual_run_02.csv": 3,
+      "gradual_run_03.csv": 9,
+      "gradual_run_04.csv": 4,
+      "gradual_run_05.csv": 0
+    },
+    "mean_first_unknown_step": 3.2
+  }
+}

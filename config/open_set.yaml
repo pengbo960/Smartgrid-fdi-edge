@@ -1,0 +1,46 @@
+dataset:
+  path: data/processed/multiview_v2_dataset.csv
+
+labels:
+  known_attack_types:
+    - none
+    - constant
+    - random
+    - replay
+    - topic_spoof
+
+  unseen_attack_type: gradual
+
+features:
+  include_groups:
+    - value
+    - temporal
+    - protocol
+
+  anomaly_features:
+    - voltage
+    - voltage_deviation
+    - voltage_zscore
+    - power_consistency_error
+
+split:
+  group_column: source_file
+  random_seed: 42
+
+model:
+  class_weight: balanced
+  max_iter: 2000
+  random_seed: 42
+  isolation_estimators: 300
+
+rejection:
+  confidence_lower_quantile: 0.01
+  anomaly_upper_quantile: 0.99
+
+output:
+  classifier_path: models/open_set_known_classifier.joblib
+  scaler_path: models/open_set_scaler.joblib
+  anomaly_detector_path: models/open_set_anomaly_detector.joblib
+  metadata_path: models/open_set_metadata.json
+  metrics_path: results/open_set/metrics/open_set_metrics.json
+  predictions_path: results/open_set/predictions/open_set_predictions.csv

@@ -8,7 +8,7 @@ SMOKE_RAW_DIR := data/raw/smoke_runs
 
 PROCESSED_DATASET := data/processed/multiview_dataset.csv
 
-.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation
+.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set
 
 help:
 	@echo "Available commands:"
@@ -21,6 +21,7 @@ help:
 	@echo "  make clean-smoke"
 	@echo "  make validate"
 	@echo "  make ablation"
+	@echo "  make open-set"
 
 test:
 	$(PYTHON) -m pytest -v
@@ -65,3 +66,7 @@ validate:
 ablation:
 	$(PYTHON) scripts/run_ablation.py \
 		--config config/ablation.yaml
+
+open-set:
+	$(PYTHON) scripts/train_open_set.py \
+		--config config/open_set.yaml
