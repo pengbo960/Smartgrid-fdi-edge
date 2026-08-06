@@ -1,0 +1,54 @@
+dataset:
+  path: data/processed/multiview_v2_dataset.csv
+
+labels:
+  target_column: is_attack
+  known_attack_types:
+    - none
+    - constant
+    - random
+    - replay
+    - topic_spoof
+  excluded_attack_types:
+    - gradual
+
+features:
+  include_groups:
+    - value
+    - temporal
+    - protocol
+
+split:
+  group_column: source_file
+  random_seed: 42
+
+preprocessing:
+  drop_warmup_rows: false
+  maximum_missing_fraction: 0.0
+
+models:
+  logistic_regression:
+    class_weight: balanced
+    max_iter: 1000
+    random_seed: 42
+  random_forest:
+    n_estimators: 300
+    max_depth: null
+    min_samples_leaf: 1
+    max_features: sqrt
+    class_weight: balanced
+    training_n_jobs: -1
+    inference_n_jobs: 1
+    random_seed: 42
+
+evaluation:
+  default_threshold: 0.5
+  threshold_metric: macro_f1
+  latency_sample_size: 1000
+
+output:
+  directory: results/model_comparison
+  summary_csv: results/model_comparison/model_comparison.csv
+  comparison_figure: results/model_comparison/model_comparison.png
+  logistic_model: models/comparison_logistic_regression.joblib
+  random_forest_model: models/comparison_random_forest.joblib
