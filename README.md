@@ -169,7 +169,10 @@ python scripts/run_simulator.py \
 ```
 
 Per-message output includes the known prediction, open-set decision,
-confidence, anomaly score, drift status and feature/model/total latency.
+confidence, anomaly score, drift status and feature/model/total latency. When
+the guarded drift controller is enabled, `raw_decision` preserves the original
+model output and `drift_aware_decision` records the separately guarded
+operational decision.
 
 ## MQTT drift scenarios
 
@@ -197,12 +200,29 @@ For the two labelled MQTT drift trials, use the dedicated experimental config:
 
 ```bash
 python scripts/run_edge_detector.py \
-  --config config/edge_drift_experiment.yaml
+  --config config/edge_drift_experiment.yaml \
+  --output results/edge/mqtt_measurement_drift_v2.csv
+```
+
+Restart the detector between scenarios so its feature windows, drift detectors
+and temporary approvals are reset. Use a different output file for the
+communication trial. Summarise both completed logs with:
+
+```bash
+python scripts/summarize_mqtt_drift.py \
+  results/edge/mqtt_measurement_drift_v2.csv \
+  results/edge/mqtt_communication_drift_v2.csv \
+  --output results/drift/live_mqtt_summary.json
 ```
 
 This config enables automatic drift approval only for controlled experiments.
 The production-style `config/edge.yaml` keeps automatic approval disabled. The
-online voltage threshold was calibrated on five independent normal MQTT runs:
+experimental approvals expire after a bounded number of device messages.
+Protocol-integrity checks, anomaly-score limits, confidence requirements and a
+minimum history are still enforced. A confirmed and approved legitimate change
+may produce `normal_drift`; it never overwrites the recorded raw decision.
+
+The online voltage threshold was calibrated on five independent normal MQTT runs:
 zero normal-drift alerts were observed at a threshold of 220, while a +5V
 measurement shift was detected 40 messages after its configured start in all
 five calibration replays.
@@ -222,8 +242,16 @@ five calibration replays.
 | Communication drift delay, five-run mean | 4.8 messages |
 | Guarded poisoning reference shift | 1.21 V |
 | Unguarded poisoning reference shift | 7.22 V |
+| Live MQTT measurement drift delay | 47 messages |
+| Live MQTT measurement active-alert reduction | 25.42% |
+| Live MQTT communication drift delay | 5 messages/device |
+| Live MQTT communication active-alert reduction | 99.11% |
 
 The consolidated machine-readable results are generated under `results/final/`.
+The labelled live MQTT drift summary is stored in
+`results/drift/live_mqtt_summary.json`. A return to the original operating
+condition is reported separately as a recovery phase because it constitutes a
+second, reverse distribution change rather than an ordinary false alarm.
 
 ## Reproducibility and generated files
 

@@ -37,4 +37,5 @@ results/logs/
 results/**/predictions/
 results/edge/*detections.csv
 results/edge/*_run.csv
+results/edge/mqtt_*_drift*.csv
 results/drift/drift_time_series.csv
