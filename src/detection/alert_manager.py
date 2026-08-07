@@ -16,6 +16,8 @@ RESULT_FIELDS = (
     "decision",
     "confidence",
     "anomaly_score",
+    "drift_detected",
+    "drift_features",
     "feature_extraction_ms",
     "model_inference_ms",
     "total_detection_ms",
@@ -62,13 +64,18 @@ class AlertManager:
                 )
                 self._file.flush()
 
-        if self.print_normal or result["decision"] != "none":
+        if (
+            self.print_normal
+            or result["decision"] != "none"
+            or result.get("drift_detected", 0)
+        ):
             print(
                 f"{result['receive_timestamp']} | "
                 f"{result['device_id']} | {result['decision'].upper()} | "
                 f"confidence={result['confidence']:.4f} | "
                 f"anomaly={result['anomaly_score']:.4f} | "
-                f"latency={result['total_detection_ms']:.3f} ms"
+                f"latency={result['total_detection_ms']:.3f} ms | "
+                f"drift={result.get('drift_features', '') or 'none'}"
             )
 
     def close(self) -> None:

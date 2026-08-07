@@ -8,7 +8,7 @@ SMOKE_RAW_DIR := data/raw/smoke_runs
 
 PROCESSED_DATASET := data/processed/multiview_dataset.csv
 
-.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark compare-models
+.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark compare-models drift
 
 help:
 	@echo "Available commands:"
@@ -25,6 +25,7 @@ help:
 	@echo "  make edge-detector"
 	@echo "  make edge-benchmark INPUT=data/raw/training_runs/normal_run_01.csv"
 	@echo "  make compare-models"
+	@echo "  make drift"
 
 test:
 	$(PYTHON) -m pytest -v
@@ -86,3 +87,7 @@ edge-benchmark:
 compare-models:
 	$(PYTHON) scripts/compare_models.py \
 		--config config/model_comparison.yaml
+
+drift:
+	$(PYTHON) scripts/evaluate_drift.py \
+		--config config/drift.yaml

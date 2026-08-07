@@ -4,6 +4,7 @@ from time import perf_counter
 from typing import Any, Callable
 
 from src.detection.model_loader import OpenSetModelBundle
+from src.drift.monitor import MultiFeatureDriftMonitor
 from src.features.feature_pipeline import StreamingFeaturePipeline
 
 
@@ -15,10 +16,12 @@ class EdgeDetector:
         model: OpenSetModelBundle,
         feature_pipeline: StreamingFeaturePipeline,
         result_handler: Callable[[dict[str, Any]], None] | None = None,
+        drift_monitor: MultiFeatureDriftMonitor | None = None,
     ) -> None:
         self.model = model
         self.feature_pipeline = feature_pipeline
         self.result_handler = result_handler
+        self.drift_monitor = drift_monitor
         self.processed_messages = 0
         self.failed_messages = 0
 
@@ -33,6 +36,15 @@ class EdgeDetector:
             prediction = self.model.predict(features)
             inference_ms = (perf_counter() - inference_started) * 1000.0
 
+            drift_events = (
+                self.drift_monitor.update(
+                    device_id=str(row["device_id"]),
+                    features=features,
+                )
+                if self.drift_monitor is not None
+                else []
+            )
+
             result = {
                 "receive_timestamp": row["receive_timestamp"],
                 "scenario_id": row["scenario_id"],
@@ -43,6 +55,11 @@ class EdgeDetector:
                 "decision": prediction.decision,
                 "confidence": prediction.confidence,
                 "anomaly_score": prediction.anomaly_score,
+                "drift_detected": int(bool(drift_events)),
+                "drift_features": ";".join(
+                    str(event["feature"])
+                    for event in drift_events
+                ),
                 "feature_extraction_ms": feature_ms,
                 "model_inference_ms": inference_ms,
                 "total_detection_ms": (perf_counter() - started) * 1000.0,

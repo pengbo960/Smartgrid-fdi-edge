@@ -16,6 +16,18 @@ artifacts:
   anomaly_detector: models/open_set_anomaly_detector.joblib
   metadata: models/open_set_metadata.json
 
+drift:
+  enabled: false
+  features:
+    - name: voltage_rolling_mean
+      delta: 0.05
+      threshold: 12.0
+      minimum_instances: 50
+    - name: source_publish_interval
+      delta: 0.01
+      threshold: 2.0
+      minimum_instances: 50
+
 output:
   detections: results/edge/macbook_detections.csv
   benchmark: results/edge/macbook_benchmark.json

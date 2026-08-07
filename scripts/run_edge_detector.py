@@ -11,6 +11,7 @@ from src.detection.alert_manager import AlertManager
 from src.detection.edge_detector import EdgeDetector
 from src.detection.model_loader import OpenSetModelBundle
 from src.features.feature_pipeline import StreamingFeaturePipeline
+from src.drift.monitor import MultiFeatureDriftMonitor
 
 
 subscriber: MqttSubscriber | None = None
@@ -67,6 +68,13 @@ def main() -> None:
         model=model,
         feature_pipeline=pipeline,
         result_handler=alerts.emit,
+        drift_monitor=(
+            MultiFeatureDriftMonitor.from_config(
+                edge_config["drift"]["features"]
+            )
+            if edge_config.get("drift", {}).get("enabled", False)
+            else None
+        ),
     )
 
     broker = mqtt_config["broker"]

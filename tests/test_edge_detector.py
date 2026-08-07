@@ -6,6 +6,7 @@ import pandas as pd
 from src.detection.edge_detector import EdgeDetector
 from src.detection.model_loader import EdgePrediction
 from src.features.feature_pipeline import StreamingFeaturePipeline
+from src.drift.monitor import MultiFeatureDriftMonitor
 
 
 def build_row(sequence: int = 0) -> dict[str, object]:
@@ -57,3 +58,28 @@ def test_edge_detector_returns_latency_and_decision() -> None:
     assert result["total_detection_ms"] >= 0
     assert detector.processed_messages == 1
     assert detector.failed_messages == 0
+
+
+def test_edge_detector_reports_drift_events() -> None:
+    monitor = MultiFeatureDriftMonitor.from_config(
+        [
+            {
+                "name": "voltage",
+                "delta": 0.0,
+                "threshold": 1.0,
+                "minimum_instances": 2,
+            }
+        ]
+    )
+    detector = EdgeDetector(
+        model=FakeModel(),  # type: ignore[arg-type]
+        feature_pipeline=StreamingFeaturePipeline(),
+        drift_monitor=monitor,
+    )
+    for sequence in range(5):
+        detector.process(build_row(sequence))
+    shifted = build_row(5)
+    shifted["voltage"] = 240.0
+    result = detector.process(shifted)
+    assert result["drift_detected"] == 1
+    assert result["drift_features"] == "voltage"

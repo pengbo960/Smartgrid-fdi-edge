@@ -1,0 +1,30 @@
+{
+  "measurement_drift": {
+    "change_step": 250,
+    "first_detection_step": 252,
+    "detection_delay": 2,
+    "false_alarms_before_change": 0
+  },
+  "communication_drift": {
+    "change_step": 250,
+    "first_detection_step": 255,
+    "detection_delay": 5,
+    "false_alarms_before_change": 0
+  },
+  "guarded_adaptation": {
+    "static_post_drift_alert_rate": 1.0,
+    "guarded_post_drift_alert_rate": 0.208,
+    "guarded_final_100_alert_rate": 0.0,
+    "adaptation_delay": 121,
+    "final_reference_mean": 235.03123999622613,
+    "reference_updates": 12
+  },
+  "poisoning_resistance": {
+    "guarded_reference_shift": 1.1439771342819824,
+    "unguarded_reference_shift": 7.2224697774038304,
+    "guarded_updates": 3,
+    "unguarded_updates": 32,
+    "drift_confirmation_step": 279,
+    "guarded_rejected_after_confirmation": 297
+  }
+}

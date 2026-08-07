@@ -1,0 +1,48 @@
+random_seed: 42
+
+streams:
+  baseline_samples: 250
+  drift_samples: 250
+
+  measurement:
+    baseline_mean: 230.0
+    drift_mean: 235.0
+    standard_deviation: 0.25
+    page_hinkley:
+      delta: 0.05
+      threshold: 12.0
+      minimum_instances: 50
+
+  communication:
+    baseline_mean: 0.5
+    drift_mean: 0.8
+    standard_deviation: 0.01
+    page_hinkley:
+      delta: 0.005
+      threshold: 1.5
+      minimum_instances: 50
+
+adaptation:
+  alert_deviation: 3.0
+  reference_tolerance: 0.5
+  window_size: 30
+  minimum_samples: 20
+  blend_rate: 0.5
+  maximum_update_step: 1.0
+
+poisoning:
+  baseline_samples: 250
+  poisoning_samples: 400
+  initial_mean: 230.0
+  final_mean: 238.0
+  standard_deviation: 0.25
+  trusted_deviation: 2.0
+  page_hinkley:
+    delta: 0.02
+    threshold: 8.0
+    minimum_instances: 50
+
+output:
+  metrics: results/drift/drift_metrics.json
+  time_series: results/drift/drift_time_series.csv
+  figure: results/drift/drift_evaluation.png
