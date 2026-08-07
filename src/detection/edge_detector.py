@@ -60,6 +60,16 @@ class EdgeDetector:
                     else []
                 )
             )
+            raw_decision = prediction.decision
+            drift_aware_decision = (
+                "normal_drift"
+                if (
+                    control_result is not None
+                    and control_result.adaptation_allowed
+                    and bool(control_result.approved_features)
+                )
+                else raw_decision
+            )
 
             result = {
                 "receive_timestamp": row["receive_timestamp"],
@@ -69,7 +79,9 @@ class EdgeDetector:
                 "true_attack_type": row.get("attack_type", ""),
                 "true_drift_type": row.get("drift_type", "none"),
                 "known_prediction": prediction.known_prediction,
-                "decision": prediction.decision,
+                "decision": raw_decision,
+                "raw_decision": raw_decision,
+                "drift_aware_decision": drift_aware_decision,
                 "confidence": prediction.confidence,
                 "anomaly_score": prediction.anomaly_score,
                 "drift_detected": int(bool(drift_events)),
@@ -99,6 +111,11 @@ class EdgeDetector:
                 ),
                 "adaptation_references": (
                     ";".join(control_result.reference_values)
+                    if control_result is not None
+                    else ""
+                ),
+                "approved_drift_features": (
+                    ";".join(control_result.approved_features)
                     if control_result is not None
                     else ""
                 ),

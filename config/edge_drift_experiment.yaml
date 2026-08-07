@@ -32,6 +32,11 @@ drift:
     enabled: true
     # Automatic approval is only enabled for these labelled controlled trials.
     auto_approve: true
+    # Approval is temporary and is renewed only by another drift event.
+    approval_ttl_messages: 500
+    # Controlled labelled trial only: after approval, a known-attack label
+    # may be treated as drift when anomaly and protocol guards remain safe.
+    allow_approved_prediction_override: true
     adaptive_features:
       - voltage_rolling_mean
       - source_publish_interval

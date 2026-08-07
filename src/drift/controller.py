@@ -18,6 +18,7 @@ class DriftControlResult:
     adaptation_features: tuple[str, ...]
     reference_updates: tuple[str, ...]
     reference_values: tuple[str, ...]
+    approved_features: tuple[str, ...]
 
 
 class DriftController:
@@ -32,6 +33,8 @@ class DriftController:
         maximum_trusted_anomaly: float = 0.75,
         minimum_history: int = 20,
         auto_approve: bool = False,
+        approval_ttl_messages: int = 300,
+        allow_approved_prediction_override: bool = False,
         adapter_config: dict[str, Any] | None = None,
     ) -> None:
         if not adaptive_features:
@@ -42,6 +45,8 @@ class DriftController:
             raise ValueError("trusted_confidence must be between 0 and 1")
         if minimum_history < 0:
             raise ValueError("minimum_history must be non-negative")
+        if approval_ttl_messages <= 0:
+            raise ValueError("approval_ttl_messages must be greater than zero")
 
         self.monitor = monitor
         self.adaptive_features = adaptive_features
@@ -50,12 +55,16 @@ class DriftController:
         self.maximum_trusted_anomaly = maximum_trusted_anomaly
         self.minimum_history = minimum_history
         self.auto_approve = auto_approve
+        self.approval_ttl_messages = approval_ttl_messages
+        self.allow_approved_prediction_override = (
+            allow_approved_prediction_override
+        )
         self.adapter_config = adapter_config or {}
         self._calibration: dict[tuple[str, str], deque[float]] = defaultdict(
             lambda: deque(maxlen=self.calibration_samples)
         )
         self._adapters: dict[tuple[str, str], ReferenceAdapter] = {}
-        self._approved: set[tuple[str, str]] = set()
+        self._approval_remaining: dict[tuple[str, str], int] = {}
 
     @classmethod
     def from_config(
@@ -73,13 +82,21 @@ class DriftController:
             ),
             minimum_history=int(config.get("minimum_history", 20)),
             auto_approve=bool(config.get("auto_approve", False)),
+            approval_ttl_messages=int(
+                config.get("approval_ttl_messages", 300)
+            ),
+            allow_approved_prediction_override=bool(
+                config.get("allow_approved_prediction_override", False)
+            ),
             adapter_config=config,
         )
 
     def approve_drift(self, device_id: str, feature: str) -> None:
         if feature not in self.adaptive_features:
             raise ValueError(f"Feature is not adaptive: {feature}")
-        self._approved.add((str(device_id), feature))
+        self._approval_remaining[(str(device_id), feature)] = (
+            self.approval_ttl_messages
+        )
 
     def reference_mean(
         self,
@@ -101,11 +118,11 @@ class DriftController:
             for event in events:
                 feature = str(event["feature"])
                 if feature in self.adaptive_features:
-                    self._approved.add((device, feature))
+                    self.approve_drift(device, feature)
 
-        trusted = self._is_trusted(features, prediction)
         updated_features: list[str] = []
         allowed_features: list[str] = []
+        approved_features: list[str] = []
         reasons: list[str] = []
 
         for feature in self.adaptive_features:
@@ -114,6 +131,14 @@ class DriftController:
             key = (device, feature)
             value = float(features[feature])
             adapter = self._adapters.get(key)
+            approved = self._approval_remaining.get(key, 0) > 0
+            trusted = self._is_trusted(
+                features,
+                prediction,
+                allow_known_attack=(
+                    approved and self.allow_approved_prediction_override
+                ),
+            )
 
             if adapter is None:
                 if trusted:
@@ -128,7 +153,8 @@ class DriftController:
                     reasons.append("calibration_sample_not_trusted")
                 continue
 
-            approved = key in self._approved
+            if approved:
+                approved_features.append(feature)
             result = adapter.update(
                 value=value,
                 trusted_sample=trusted,
@@ -139,6 +165,13 @@ class DriftController:
                 allowed_features.append(feature)
             if result.updated:
                 updated_features.append(feature)
+
+            if approved:
+                remaining = self._approval_remaining[key] - 1
+                if remaining > 0:
+                    self._approval_remaining[key] = remaining
+                else:
+                    del self._approval_remaining[key]
 
         return DriftControlResult(
             drift_events=tuple(events),
@@ -152,12 +185,14 @@ class DriftController:
                 for feature in self.adaptive_features
                 if (device, feature) in self._adapters
             ),
+            approved_features=tuple(approved_features),
         )
 
     def _is_trusted(
         self,
         features: dict[str, Any],
         prediction: EdgePrediction,
+        allow_known_attack: bool = False,
     ) -> bool:
         protocol_safe = all(
             int(features.get(name, 0)) == 0
@@ -171,7 +206,7 @@ class DriftController:
         ) and int(features.get("device_topic_match", 1)) == 1
 
         return (
-            prediction.known_prediction == "none"
+            (prediction.known_prediction == "none" or allow_known_attack)
             and prediction.confidence >= self.trusted_confidence
             and prediction.anomaly_score <= self.maximum_trusted_anomaly
             and int(features.get("history_count", 0)) >= self.minimum_history

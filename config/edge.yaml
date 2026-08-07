@@ -31,6 +31,8 @@ drift:
   adaptation:
     enabled: false
     auto_approve: false
+    approval_ttl_messages: 300
+    allow_approved_prediction_override: false
     adaptive_features:
       - voltage_rolling_mean
       - source_publish_interval
