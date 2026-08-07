@@ -23,6 +23,7 @@ from src.simulation.signal_generator import (
     SignalGenerator,
     build_device_configs,
 )
+from src.simulation.drift_manager import NormalDriftManager
 
 
 running = True
@@ -129,6 +130,9 @@ def main() -> None:
     scenario_manager = ScenarioManager(
         scenario=scenario
     )
+    drift_manager = NormalDriftManager.from_config(
+        raw_scenario_config.get("drifts")
+    )
 
     generator = SignalGenerator(
         random_seed=random_seed
@@ -199,11 +203,34 @@ def main() -> None:
             and time.monotonic() - start_time < duration
         ):
             cycle_start = time.monotonic()
+            current_interval, interval_drift_type, interval_drift_step = (
+                drift_manager.publish_interval(step, interval)
+            )
 
             for device in devices:
                 normal_values = generator.generate(
                     step=step,
                     device=device,
+                )
+                (
+                    normal_values,
+                    measurement_drift_type,
+                    measurement_drift_step,
+                ) = drift_manager.apply_measurements(
+                    device_id=device.device_id,
+                    step=step,
+                    measurements=normal_values,
+                    power_factor=device.power_factor,
+                )
+                drift_type = (
+                    measurement_drift_type
+                    if measurement_drift_type != "none"
+                    else interval_drift_type
+                )
+                drift_step = (
+                    measurement_drift_step
+                    if measurement_drift_type != "none"
+                    else interval_drift_step
                 )
 
                 topic = topic_template.format(
@@ -227,6 +254,9 @@ def main() -> None:
                     "attack_type": "none",
                     "is_attack": 0,
                     "attack_step": None,
+                    "drift_type": drift_type,
+                    "drift_active": int(drift_type != "none"),
+                    "drift_step": drift_step,
                 }
 
                 active_schedule = (
@@ -345,6 +375,7 @@ def main() -> None:
                     f"payload_sequence="
                     f"{payload['sequence_number']}, "
                     f"attack={payload['attack_type']}, "
+                    f"drift={payload.get('drift_type', 'none')}, "
                     f"topic={topic}"
                 )
 
@@ -365,7 +396,7 @@ def main() -> None:
 
             sleep_time = max(
                 0.0,
-                interval - elapsed,
+                current_interval - elapsed,
             )
 
             if sleep_time > 0:

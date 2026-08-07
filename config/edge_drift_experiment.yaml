@@ -1,7 +1,7 @@
-platform_label: macbook_emulated_edge_gateway
+platform_label: macbook_emulated_edge_gateway_drift_experiment
 
 mqtt:
-  client_id: edge-detector-macbook
+  client_id: edge-detector-drift-experiment
 
 features:
   window_size: 20
@@ -17,7 +17,7 @@ artifacts:
   metadata: models/open_set_metadata.json
 
 drift:
-  enabled: false
+  enabled: true
   features:
     - name: voltage_rolling_mean
       delta: 0.05
@@ -29,8 +29,9 @@ drift:
       minimum_instances: 50
 
   adaptation:
-    enabled: false
-    auto_approve: false
+    enabled: true
+    # Automatic approval is only enabled for these labelled controlled trials.
+    auto_approve: true
     adaptive_features:
       - voltage_rolling_mean
       - source_publish_interval
@@ -44,6 +45,6 @@ drift:
     maximum_update_step: 1.0
 
 output:
-  detections: results/edge/macbook_detections.csv
-  benchmark: results/edge/macbook_benchmark.json
+  detections: results/edge/mqtt_drift_experiment.csv
+  benchmark: results/edge/macbook_drift_benchmark.json
   print_normal: false

@@ -1,0 +1,60 @@
+{
+  "runs": 5,
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "summary": {
+    "measurement_detection_delay": {
+      "mean": 2.0,
+      "standard_deviation": 0.0,
+      "minimum": 2.0,
+      "maximum": 2.0
+    },
+    "measurement_false_alarms": {
+      "mean": 0.0,
+      "standard_deviation": 0.0,
+      "minimum": 0.0,
+      "maximum": 0.0
+    },
+    "communication_detection_delay": {
+      "mean": 4.8,
+      "standard_deviation": 0.4472135954999579,
+      "minimum": 4.0,
+      "maximum": 5.0
+    },
+    "communication_false_alarms": {
+      "mean": 0.0,
+      "standard_deviation": 0.0,
+      "minimum": 0.0,
+      "maximum": 0.0
+    },
+    "adaptation_delay": {
+      "mean": 113.0,
+      "standard_deviation": 10.954451150103322,
+      "minimum": 101.0,
+      "maximum": 121.0
+    },
+    "final_100_alert_rate": {
+      "mean": 0.0,
+      "standard_deviation": 0.0,
+      "minimum": 0.0,
+      "maximum": 0.0
+    },
+    "guarded_reference_shift": {
+      "mean": 1.2125739487636849,
+      "standard_deviation": 0.06652060969700949,
+      "minimum": 1.1448273553345416,
+      "maximum": 1.321243200953461
+    },
+    "unguarded_reference_shift": {
+      "mean": 7.221121006514636,
+      "standard_deviation": 0.02818478701945315,
+      "minimum": 7.186416697117693,
+      "maximum": 7.250827105560944
+    }
+  }
+}

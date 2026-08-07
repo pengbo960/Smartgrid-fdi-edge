@@ -12,6 +12,7 @@ from src.detection.edge_detector import EdgeDetector
 from src.detection.model_loader import OpenSetModelBundle
 from src.features.feature_pipeline import StreamingFeaturePipeline
 from src.drift.monitor import MultiFeatureDriftMonitor
+from src.drift.controller import DriftController
 
 
 subscriber: MqttSubscriber | None = None
@@ -64,17 +65,28 @@ def main() -> None:
             args.print_normal or bool(edge_config["output"]["print_normal"])
         ),
     )
+    drift_config = edge_config.get("drift", {})
+    drift_monitor = (
+        MultiFeatureDriftMonitor.from_config(drift_config["features"])
+        if drift_config.get("enabled", False)
+        else None
+    )
+    adaptation_config = drift_config.get("adaptation", {})
+    drift_controller = (
+        DriftController.from_config(drift_monitor, adaptation_config)
+        if (
+            drift_monitor is not None
+            and adaptation_config.get("enabled", False)
+        )
+        else None
+    )
+
     detector = EdgeDetector(
         model=model,
         feature_pipeline=pipeline,
         result_handler=alerts.emit,
-        drift_monitor=(
-            MultiFeatureDriftMonitor.from_config(
-                edge_config["drift"]["features"]
-            )
-            if edge_config.get("drift", {}).get("enabled", False)
-            else None
-        ),
+        drift_monitor=(None if drift_controller is not None else drift_monitor),
+        drift_controller=drift_controller,
     )
 
     broker = mqtt_config["broker"]

@@ -8,7 +8,7 @@ SMOKE_RAW_DIR := data/raw/smoke_runs
 
 PROCESSED_DATASET := data/processed/multiview_dataset.csv
 
-.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark compare-models drift
+.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark compare-models drift drift-repeated final-summary experiments
 
 help:
 	@echo "Available commands:"
@@ -26,6 +26,9 @@ help:
 	@echo "  make edge-benchmark INPUT=data/raw/training_runs/normal_run_01.csv"
 	@echo "  make compare-models"
 	@echo "  make drift"
+	@echo "  make drift-repeated"
+	@echo "  make final-summary"
+	@echo "  make experiments"
 
 test:
 	$(PYTHON) -m pytest -v
@@ -91,3 +94,18 @@ compare-models:
 drift:
 	$(PYTHON) scripts/evaluate_drift.py \
 		--config config/drift.yaml
+
+drift-repeated:
+	$(PYTHON) scripts/evaluate_drift_repeated.py \
+		--config config/drift.yaml
+
+final-summary:
+	$(PYTHON) scripts/summarize_results.py
+
+experiments:
+	$(PYTHON) scripts/run_ablation.py --config config/ablation.yaml
+	$(PYTHON) scripts/train_open_set.py --config config/open_set.yaml
+	$(PYTHON) scripts/compare_models.py --config config/model_comparison.yaml
+	$(PYTHON) scripts/evaluate_drift.py --config config/drift.yaml
+	$(PYTHON) scripts/evaluate_drift_repeated.py --config config/drift.yaml
+	$(PYTHON) scripts/summarize_results.py

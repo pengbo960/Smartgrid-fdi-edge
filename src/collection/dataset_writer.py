@@ -24,6 +24,9 @@ RAW_DATA_FIELDS = [
     "attack_type",
     "is_attack",
     "attack_step",
+    "drift_type",
+    "drift_active",
+    "drift_step",
 ]
 
 

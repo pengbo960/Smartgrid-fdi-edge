@@ -1,0 +1,15 @@
+scenario:
+  scenario_id: measurement_drift_01
+  duration: 300.0
+  publish_interval: 0.5
+  random_seed: 701
+
+attacks: []
+
+drifts:
+  - device_id: meter_02
+    drift_type: measurement_shift
+    start_step: 150
+    end_step: 450
+    voltage_offset: 5.0
+    transition_steps: 1

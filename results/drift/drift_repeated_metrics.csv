@@ -1,0 +1,6 @@
+seed,measurement_detection_delay,measurement_false_alarms,communication_detection_delay,communication_false_alarms,adaptation_delay,final_100_alert_rate,guarded_reference_shift,unguarded_reference_shift
+42,2,0,5,0,121,0.0,1.1448273553345416,7.224401703734486
+43,2,0,5,0,101,0.0,1.321243200953461,7.2452009771539565
+44,2,0,5,0,121,0.0,1.2059842687048388,7.186416697117693
+45,2,0,5,0,101,0.0,1.2136907601071698,7.198758549006101
+46,2,0,4,0,121,0.0,1.1771241587184136,7.250827105560944

@@ -206,6 +206,9 @@ class MqttSubscriber:
                     "attack_step",
                     "",
                 ),
+                "drift_type": payload.get("drift_type", "none"),
+                "drift_active": payload.get("drift_active", 0),
+                "drift_step": payload.get("drift_step", ""),
             }
 
             self.message_handler(row)

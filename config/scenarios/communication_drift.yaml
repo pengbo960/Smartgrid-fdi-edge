@@ -1,0 +1,15 @@
+scenario:
+  scenario_id: communication_drift_01
+  duration: 450.0
+  publish_interval: 0.5
+  random_seed: 702
+
+attacks: []
+
+drifts:
+  - device_id: "*"
+    drift_type: publish_interval
+    start_step: 150
+    end_step: 600
+    target_interval: 0.8
+    transition_steps: 1
