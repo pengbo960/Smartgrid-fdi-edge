@@ -1,0 +1,8 @@
+edge_config: config/edge.yaml
+input: data/raw/multiview_v2_runs/gradual_run_01.csv
+repetitions: 5
+warmup_messages_per_device: 34
+
+output:
+  runs_csv: results/edge/repeated/open_set_benchmark_runs.csv
+  summary_csv: results/edge/repeated/open_set_benchmark_summary.csv

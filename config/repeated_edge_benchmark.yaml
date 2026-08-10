@@ -1,7 +1,7 @@
 platform_label: macbook_emulated_edge_gateway
 input: data/raw/multiview_v2_runs/gradual_run_01.csv
 repetitions: 5
-warmup_messages: 100
+warmup_messages_per_device: 34
 
 features:
   window_size: 20

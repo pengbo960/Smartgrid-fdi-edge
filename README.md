@@ -169,11 +169,19 @@ make edge-benchmark-repeated
 ```
 
 Each model/run executes in a fresh process over the same raw message stream.
-The first 100 messages warm the stateful feature pipeline and are excluded from
-timing. The two model orders alternate between runs. Results are saved under
+The first 34 messages from each device (102 total) warm the stateful feature
+pipeline and are excluded from timing. The two model orders alternate between
+runs. Results are saved under
 `results/edge/repeated/`. This is a known-attack classifier cost comparison;
 the separate `edge-benchmark` command measures the complete open-set pipeline,
 including Isolation Forest scoring.
+
+Repeat that complete Logistic Regression plus Isolation Forest open-set
+pipeline with the same per-device warm-up policy:
+
+```bash
+make open-set-edge-benchmark-repeated
+```
 
 ## Real-time edge detector
 

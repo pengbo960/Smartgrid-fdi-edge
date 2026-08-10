@@ -12,6 +12,7 @@ from src.common.config import load_yaml_config
 from src.detection.edge_detector import EdgeDetector
 from src.detection.model_loader import OpenSetModelBundle
 from src.evaluation.resource_monitor import ResourceMonitor
+from src.evaluation.edge_warmup import partition_device_warmup
 from src.features.data_loader import load_raw_dataset
 from src.features.feature_pipeline import StreamingFeaturePipeline
 
@@ -24,6 +25,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", default="config/edge.yaml")
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--warmup", type=int, default=0)
+    parser.add_argument("--warmup-per-device", type=int, default=None)
     return parser.parse_args()
 
 
@@ -56,13 +59,27 @@ def main() -> None:
             raise ValueError("limit must be greater than zero")
         dataframe = dataframe.head(args.limit)
 
+    rows = dataframe.to_dict(orient="records")
+    if args.warmup_per_device is not None:
+        warmup_rows, measured_rows, warmup_counts = partition_device_warmup(
+            rows, args.warmup_per_device
+        )
+    else:
+        if args.warmup < 0 or args.warmup >= len(rows):
+            raise ValueError("warmup must leave at least one measured message")
+        warmup_rows = rows[:args.warmup]
+        measured_rows = rows[args.warmup:]
+        warmup_counts = {}
+    for row in warmup_rows:
+        detector.process(row)
+
     monitor = ResourceMonitor()
     before = monitor.snapshot()
     total_latencies: list[float] = []
     feature_latencies: list[float] = []
     inference_latencies: list[float] = []
     started = perf_counter()
-    for row in dataframe.to_dict(orient="records"):
+    for row in measured_rows:
         result = detector.process(row)
         total_latencies.append(result["total_detection_ms"])
         feature_latencies.append(result["feature_extraction_ms"])
@@ -77,10 +94,21 @@ def main() -> None:
 
     report = {
         "platform_label": config["platform_label"],
+        "benchmark_mode": "full_open_set_streaming_pipeline",
+        "classifier_class": type(model.classifier).__name__,
+        "anomaly_detector_class": type(model.anomaly_detector).__name__,
+        "classifier_path": str(artifacts["classifier"]),
+        "anomaly_detector_path": str(artifacts["anomaly_detector"]),
+        "metadata_path": str(artifacts["metadata"]),
         "system": platform.system(),
         "machine": platform.machine(),
         "python_version": platform.python_version(),
         "input_file": str(args.input),
+        "input_messages": len(rows),
+        "warmup_messages": len(warmup_rows),
+        "warmup_messages_per_device": args.warmup_per_device,
+        "warmup_device_counts": warmup_counts,
+        "measured_messages": len(total_latencies),
         "processed_messages": detector.processed_messages,
         "failed_messages": detector.failed_messages,
         "elapsed_seconds": elapsed,

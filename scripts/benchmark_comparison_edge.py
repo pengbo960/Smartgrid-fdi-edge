@@ -12,6 +12,7 @@ from src.common.config import load_yaml_config
 from src.detection.comparison_model_loader import ComparisonModelBundle
 from src.detection.edge_detector import EdgeDetector
 from src.evaluation.resource_monitor import ResourceMonitor
+from src.evaluation.edge_warmup import partition_device_warmup
 from src.features.data_loader import load_raw_dataset
 from src.features.feature_pipeline import StreamingFeaturePipeline
 
@@ -50,10 +51,10 @@ def main() -> None:
         ),
     )
     rows = load_raw_dataset(config["input"]).to_dict(orient="records")
-    warmup = int(config.get("warmup_messages", 0))
-    if warmup < 0 or warmup >= len(rows):
-        raise ValueError("warmup_messages must leave at least one measured message")
-    for row in rows[:warmup]:
+    warmup_rows, measured_rows, warmup_counts = partition_device_warmup(
+        rows, int(config.get("warmup_messages_per_device", 0))
+    )
+    for row in warmup_rows:
         detector.process(row)
 
     monitor = ResourceMonitor()
@@ -62,7 +63,7 @@ def main() -> None:
     feature_latencies: list[float] = []
     inference_latencies: list[float] = []
     started = perf_counter()
-    for row in rows[warmup:]:
+    for row in measured_rows:
         result = detector.process(row)
         total_latencies.append(float(result["total_detection_ms"]))
         feature_latencies.append(float(result["feature_extraction_ms"]))
@@ -84,7 +85,11 @@ def main() -> None:
         "artifact_size_mb": artifact_path.stat().st_size / (1024 ** 2),
         "feature_count": len(model.feature_columns),
         "threshold": model.threshold,
-        "warmup_messages": warmup,
+        "warmup_messages_per_device": int(
+            config.get("warmup_messages_per_device", 0)
+        ),
+        "warmup_messages_total": len(warmup_rows),
+        "warmup_device_counts": warmup_counts,
         "measured_messages": measured,
         "failed_messages": detector.failed_messages,
         "elapsed_seconds": elapsed,

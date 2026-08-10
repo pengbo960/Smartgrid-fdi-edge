@@ -8,7 +8,7 @@ SMOKE_RAW_DIR := data/raw/smoke_runs
 
 PROCESSED_DATASET := data/processed/multiview_dataset.csv
 
-.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark edge-benchmark-repeated compare-models repeated-experiments drift drift-repeated final-summary experiments
+.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark edge-benchmark-repeated open-set-edge-benchmark-repeated compare-models repeated-experiments drift drift-repeated final-summary experiments
 
 help:
 	@echo "Available commands:"
@@ -25,6 +25,7 @@ help:
 	@echo "  make edge-detector"
 	@echo "  make edge-benchmark INPUT=data/raw/training_runs/normal_run_01.csv"
 	@echo "  make edge-benchmark-repeated"
+	@echo "  make open-set-edge-benchmark-repeated"
 	@echo "  make compare-models"
 	@echo "  make repeated-experiments"
 	@echo "  make drift"
@@ -92,6 +93,10 @@ edge-benchmark:
 edge-benchmark-repeated:
 	$(PYTHON) scripts/run_repeated_edge_benchmark.py \
 		--config config/repeated_edge_benchmark.yaml
+
+open-set-edge-benchmark-repeated:
+	$(PYTHON) scripts/run_repeated_open_set_edge_benchmark.py \
+		--config config/repeated_open_set_edge_benchmark.yaml
 
 compare-models:
 	$(PYTHON) scripts/compare_models.py \
