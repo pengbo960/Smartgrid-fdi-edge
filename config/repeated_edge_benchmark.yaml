@@ -1,0 +1,19 @@
+platform_label: macbook_emulated_edge_gateway
+input: data/raw/multiview_v2_runs/gradual_run_01.csv
+repetitions: 5
+warmup_messages: 100
+
+features:
+  window_size: 20
+  minimum_history: 2
+  power_factor: 0.95
+  repeated_value_field: voltage
+  value_tolerance: 0.000001
+
+models:
+  logistic_regression: models/comparison_logistic_regression.joblib
+  random_forest: models/comparison_random_forest.joblib
+
+output:
+  runs_csv: results/edge/repeated/model_benchmark_runs.csv
+  summary_csv: results/edge/repeated/model_benchmark_summary.csv

@@ -161,6 +161,20 @@ python scripts/run_repeated_experiments.py \
   --seeds 42
 ```
 
+Repeat the MacBook streaming benchmark for the fixed Logistic Regression and
+Random Forest deployment artifacts:
+
+```bash
+make edge-benchmark-repeated
+```
+
+Each model/run executes in a fresh process over the same raw message stream.
+The first 100 messages warm the stateful feature pipeline and are excluded from
+timing. The two model orders alternate between runs. Results are saved under
+`results/edge/repeated/`. This is a known-attack classifier cost comparison;
+the separate `edge-benchmark` command measures the complete open-set pipeline,
+including Isolation Forest scoring.
+
 ## Real-time edge detector
 
 Train the open-set artifacts first:
