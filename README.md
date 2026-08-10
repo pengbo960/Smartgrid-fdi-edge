@@ -139,6 +139,7 @@ Run the research experiments:
 make ablation
 make open-set
 make compare-models
+make repeated-experiments
 make drift
 make drift-repeated
 make final-summary
@@ -146,6 +147,19 @@ make final-summary
 
 `make experiments` runs the complete offline experiment suite when the formal
 dataset and local model artifacts are available.
+
+`make repeated-experiments` repeats the ablation, Logistic Regression versus
+Random Forest, and open-set experiments with the grouped-split seeds configured
+in `config/repeated_experiments.yaml`. It writes per-run values and
+mean/sample-standard-deviation/minimum/maximum summaries to `results/repeated/`.
+These runs are repeated grouped holdouts, not k-fold cross-validation. Use a
+partial run for development with, for example:
+
+```bash
+python scripts/run_repeated_experiments.py \
+  --sections open_set \
+  --seeds 42
+```
 
 ## Real-time edge detector
 

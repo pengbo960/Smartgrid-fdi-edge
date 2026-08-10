@@ -1,0 +1,14 @@
+seeds:
+  - 42
+  - 43
+  - 44
+  - 45
+  - 46
+
+experiments:
+  ablation_config: config/ablation.yaml
+  model_comparison_config: config/model_comparison.yaml
+  open_set_config: config/open_set.yaml
+
+output:
+  root_directory: results/repeated
