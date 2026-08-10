@@ -142,11 +142,20 @@ make compare-models
 make repeated-experiments
 make drift
 make drift-repeated
+make drift-phases
 make final-summary
 ```
 
 `make experiments` runs the complete offline experiment suite when the formal
 dataset and local model artifacts are available.
+
+`make drift-phases` analyses the two labelled live MQTT drift trials as
+baseline, pre-detection, detected-before-reference-update, post-update,
+recovery, and unaffected-control phases. The resulting alert-rate and latency
+table is written to `results/drift/live_mqtt_phase_metrics.csv`. In the current
+prototype, guarded adaptation updates statistical references and permits an
+approved `normal_drift` operational decision; it does not retrain or recalibrate
+the classifier, scaler, or Isolation Forest in the packet-processing path.
 
 `make repeated-experiments` repeats the ablation, Logistic Regression versus
 Random Forest, and open-set experiments with the grouped-split seeds configured

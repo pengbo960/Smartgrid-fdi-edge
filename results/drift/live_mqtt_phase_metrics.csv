@@ -1,0 +1,12 @@
+experiment,evaluation_phase,rows,devices,raw_false_alerts,raw_false_alert_rate,drift_aware_false_alerts,drift_aware_false_alert_rate,false_alert_reduction_percent,normal_drift_rows,drift_detections,adaptation_updates,latency_mean_ms,latency_p95_ms
+mqtt_measurement_drift_v2,baseline,150,meter_02,0,0.0,0,0.0,0.0,0,0,0,14.000604439837238,17.384979117196043
+mqtt_measurement_drift_v2,drift_pre_detection,47,meter_02,20,0.425531914893617,20,0.425531914893617,0.0,0,0,0,14.134663082857399,15.996358636766672
+mqtt_measurement_drift_v2,drift_detected_pre_adaptation,19,meter_02,2,0.10526315789473684,0,0.0,100.0,19,1,0,14.538761032255072,16.239979839883745
+mqtt_measurement_drift_v2,drift_post_adaptation,234,meter_02,37,0.1581196581196581,24,0.10256410256410256,35.13513513513514,196,0,10,14.483505155509098,15.961357904598117
+mqtt_measurement_drift_v2,recovery,146,meter_02,2,0.0136986301369863,0,0.0,100.0,144,1,7,14.263597347339845,15.984000579919664
+mqtt_measurement_drift_v2,unaffected_control,1192,meter_01;meter_03,12,0.010067114093959731,12,0.010067114093959731,0.0,0,0,0,20.804154283278027,32.50385170103982
+mqtt_communication_drift_v2,baseline,450,meter_01;meter_02;meter_03,11,0.024444444444444446,11,0.024444444444444446,0.0,0,0,0,17.743621266240048,33.10082294046879
+mqtt_communication_drift_v2,drift_pre_detection,15,meter_01;meter_02;meter_03,12,0.8,12,0.8,0.0,0,0,0,19.509691729520757,35.38907491602003
+mqtt_communication_drift_v2,drift_detected_pre_adaptation,57,meter_01;meter_02;meter_03,57,1.0,0,0.0,100.0,57,3,0,19.08388160773667,37.29542521759868
+mqtt_communication_drift_v2,drift_post_adaptation,1278,meter_01;meter_02;meter_03,1278,1.0,0,0.0,100.0,1278,0,66,19.08003256662788,37.14928311528638
+mqtt_communication_drift_v2,recovery,75,meter_01;meter_02;meter_03,4,0.05333333333333334,1,0.013333333333333334,75.0,64,3,3,18.96707660208146,33.081233012489974

@@ -8,6 +8,91 @@ import pandas as pd
 NON_ALERT_DECISIONS = {"none", "normal_drift"}
 
 
+def build_live_drift_phase_metrics(frame: pd.DataFrame) -> pd.DataFrame:
+    """Build false-alert and latency metrics for each operational phase."""
+    required = {
+        "device_id", "sequence_number", "true_drift_type", "decision",
+        "drift_aware_decision", "drift_detected", "adaptation_updated",
+        "total_detection_ms",
+    }
+    missing = required - set(frame.columns)
+    if missing:
+        raise ValueError(f"Live drift results missing columns: {sorted(missing)}")
+    if frame.empty:
+        raise ValueError("Live drift results must not be empty")
+
+    data = frame.copy()
+    data["evaluation_phase"] = "unaffected_control"
+    for device_id, indices in data.groupby("device_id", sort=True).groups.items():
+        device = data.loc[indices]
+        active = device[device["true_drift_type"] != "none"]
+        if active.empty:
+            continue
+        sequence = data.loc[indices, "sequence_number"].astype(int)
+        start = int(active["sequence_number"].min())
+        end = int(active["sequence_number"].max())
+        detections = device[
+            (device["drift_detected"] == 1)
+            & device["sequence_number"].astype(int).between(start, end)
+        ]
+        updates = device[
+            (device["adaptation_updated"] == 1)
+            & device["sequence_number"].astype(int).between(start, end)
+        ]
+        first_detection = (
+            int(detections["sequence_number"].min()) if not detections.empty else end + 1
+        )
+        first_update = (
+            int(updates["sequence_number"].min()) if not updates.empty else end + 1
+        )
+        data.loc[indices[sequence < start], "evaluation_phase"] = "baseline"
+        data.loc[
+            indices[sequence.between(start, min(first_detection - 1, end))],
+            "evaluation_phase",
+        ] = "drift_pre_detection"
+        data.loc[
+            indices[sequence.between(first_detection, min(first_update - 1, end))],
+            "evaluation_phase",
+        ] = "drift_detected_pre_adaptation"
+        data.loc[
+            indices[sequence.between(first_update, end)], "evaluation_phase"
+        ] = "drift_post_adaptation"
+        data.loc[indices[sequence > end], "evaluation_phase"] = "recovery"
+
+    rows: list[dict[str, Any]] = []
+    phase_order = (
+        "baseline", "drift_pre_detection", "drift_detected_pre_adaptation",
+        "drift_post_adaptation", "recovery", "unaffected_control",
+    )
+    for phase in phase_order:
+        group = data[data["evaluation_phase"] == phase]
+        if group.empty:
+            continue
+        raw_alert = group["decision"] != "none"
+        aware_alert = ~group["drift_aware_decision"].isin(NON_ALERT_DECISIONS)
+        rows.append({
+            "evaluation_phase": phase,
+            "rows": int(len(group)),
+            "devices": ";".join(sorted(group["device_id"].astype(str).unique())),
+            "raw_false_alerts": int(raw_alert.sum()),
+            "raw_false_alert_rate": float(raw_alert.mean()),
+            "drift_aware_false_alerts": int(aware_alert.sum()),
+            "drift_aware_false_alert_rate": float(aware_alert.mean()),
+            "false_alert_reduction_percent": (
+                0.0 if not raw_alert.any()
+                else float(100.0 * (raw_alert.sum() - aware_alert.sum()) / raw_alert.sum())
+            ),
+            "normal_drift_rows": int(
+                (group["drift_aware_decision"] == "normal_drift").sum()
+            ),
+            "drift_detections": int(group["drift_detected"].sum()),
+            "adaptation_updates": int(group["adaptation_updated"].sum()),
+            "latency_mean_ms": float(group["total_detection_ms"].mean()),
+            "latency_p95_ms": float(group["total_detection_ms"].quantile(0.95)),
+        })
+    return pd.DataFrame(rows)
+
+
 def evaluate_live_drift(frame: pd.DataFrame) -> dict[str, Any]:
     """Summarise one labelled live MQTT drift experiment."""
     required = {
