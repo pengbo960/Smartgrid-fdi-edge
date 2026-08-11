@@ -157,6 +157,19 @@ prototype, guarded adaptation updates statistical references and permits an
 approved `normal_drift` operational decision; it does not retrain or recalibrate
 the classifier, scaler, or Isolation Forest in the packet-processing path.
 
+After collecting five independent `measurement_drift` and five independent
+`communication_drift` MQTT trials under `results/edge/repeated_live/`, run:
+
+```bash
+make drift-live-repeated-summary
+```
+
+This preserves every trial as an independent run and writes overall and
+phase-wise run tables plus mean/sample-standard-deviation summaries under
+`results/drift/repeated_live/`. Recovery remains a separate phase because a
+reverse-drift event can temporarily renew guarded approval after the labelled
+drift interval ends.
+
 `make repeated-experiments` repeats the ablation, Logistic Regression versus
 Random Forest, and open-set experiments with the grouped-split seeds configured
 in `config/repeated_experiments.yaml`. It writes per-run values and

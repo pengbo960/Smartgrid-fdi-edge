@@ -8,7 +8,7 @@ SMOKE_RAW_DIR := data/raw/smoke_runs
 
 PROCESSED_DATASET := data/processed/multiview_dataset.csv
 
-.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark edge-benchmark-repeated open-set-edge-benchmark-repeated compare-models repeated-experiments drift drift-repeated drift-phases final-summary experiments
+.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark edge-benchmark-repeated open-set-edge-benchmark-repeated compare-models repeated-experiments drift drift-repeated drift-phases drift-live-repeated-summary final-summary experiments
 
 help:
 	@echo "Available commands:"
@@ -31,6 +31,7 @@ help:
 	@echo "  make drift"
 	@echo "  make drift-repeated"
 	@echo "  make drift-phases"
+	@echo "  make drift-live-repeated-summary"
 	@echo "  make final-summary"
 	@echo "  make experiments"
 
@@ -119,6 +120,11 @@ drift-phases:
 	$(PYTHON) scripts/analyze_live_drift_phases.py \
 		results/edge/mqtt_measurement_drift_v2.csv \
 		results/edge/mqtt_communication_drift_v2.csv
+
+drift-live-repeated-summary:
+	$(PYTHON) scripts/summarize_repeated_live_drift.py \
+		results/edge/repeated_live/measurement_drift_run_*.csv \
+		results/edge/repeated_live/communication_drift_run_*.csv
 
 final-summary:
 	$(PYTHON) scripts/summarize_results.py
