@@ -50,7 +50,6 @@ flowchart LR
         F --> K
         F --> O
         F --> D
-        F -->|"History and protocol-integrity evidence"| A
 
         K --> E
         O --> E
