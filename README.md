@@ -30,34 +30,40 @@ Page-Hinkley drift monitoring and guarded statistical adaptation.
 
 ```mermaid
 flowchart LR
-    S["Smart-meter simulators"] -->|"MQTT messages"| B["Mosquitto broker"]
-    B --> G["Edge gateway"]
+    S["Smart-meter<br/>simulators"]
+    B["Mosquitto<br/>broker"]
 
-    subgraph G["Edge gateway"]
-        C["MQTT subscriber"]
-        F["Streaming multi-view feature extraction"]
-        K["Known-attack classifier"]
-        O["Isolation Forest anomaly detector"]
-        E["Open-set decision engine"]
-        D["Page-Hinkley drift monitor"]
-        A["Guarded adaptation controller"]
-        L["Detection, drift and performance logs"]
+    subgraph G["Emulated Edge Gateway"]
+        C["MQTT<br/>subscriber"]
+        F["Streaming multi-view<br/>feature extraction"]
+
+        K["Known-attack<br/>classifier"]
+        O["Isolation Forest<br/>anomaly detector"]
+        D["Page-Hinkley<br/>drift monitor"]
+
+        E["Open-set<br/>decision engine"]
+        A["Guarded adaptation<br/>controller"]
+        L["Detection, drift, adaptation<br/>and performance logs"]
 
         C --> F
-        F --> K
-        F --> O
-        F --> D
 
-        K --> E
-        O --> E
+        F -->|"Value, temporal and<br/>protocol features"| K
+        F -->|"Selected features"| O
+        F -->|"Selected drift features"| D
+        F -->|"History and protocol-<br/>integrity evidence"| A
 
-        D --> A
-        E -->|"prediction, confidence and anomaly score"| A
+        K -->|"Prediction and confidence"| E
+        O -->|"Anomaly score"| E
 
-        E --> L
-        A -->|"drift and adaptation status"| L
+        E -->|"Raw detection decision"| L
+        E -->|"Prediction and<br/>open-set scores"| A
+        D -->|"Drift events"| A
+
+        A -->|"Drift-aware decision and<br/>adaptation status"| L
     end
 
+    S -->|"MQTT measurement messages"| B
+    B --> G
 ```
 
 The drift monitor is a side-path component. It does not retrain the classifier
