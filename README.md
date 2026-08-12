@@ -33,7 +33,7 @@ flowchart LR
     S["Smart-meter simulators"]
     B["Mosquitto broker"]
 
-    subgraph G["Emulated Edge Gateway"]
+    subgraph G["Edge Gateway"]
         C["MQTT subscriber"]
         F["Streaming multi-view feature extraction"]
 
@@ -47,22 +47,22 @@ flowchart LR
 
         C --> F
 
-        F -->|"Value, temporal and protocol features"| K
-        F -->|"Selected features"| O
-        F -->|"Selected drift features"| D
+        F --> K
+        F --> O
+        F --> D
         F -->|"History and protocol-integrity evidence"| A
 
-        K -->|"Prediction and confidence"| E
-        O -->|"Anomaly score"| E
+        K --> E
+        O --> E
 
-        E -->|"Raw detection decision"| L
+        E --> L
         E -->|"Prediction and open-set scores"| A
         D -->|"Drift events"| A
 
         A -->|"Drift-aware decision and adaptation status"| L
     end
 
-    S -->|"MQTT measurement messages"| B
+    S -->|"MQTT messages"| B
     B --> G
 ```
 
