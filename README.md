@@ -31,6 +31,7 @@ Page-Hinkley drift monitoring and guarded statistical adaptation.
 ```mermaid
 flowchart LR
     S["Smart-meter simulators"] -->|"MQTT messages"| B["Mosquitto broker"]
+    B --> G["Edge gateway"]
 
     subgraph G["Edge gateway"]
         C["MQTT subscriber"]
