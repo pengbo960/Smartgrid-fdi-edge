@@ -30,20 +30,34 @@ Page-Hinkley drift monitoring and guarded statistical adaptation.
 
 ```mermaid
 flowchart LR
-    S["Smart-meter simulators"] -->|"MQTT measurements"| B["Mosquitto broker"]
-    B --> G["Emulated edge gateway"]
+    S["Smart-meter simulators"] -->|"MQTT messages"| B["Mosquitto broker"]
 
-    subgraph G["Emulated edge gateway"]
-        C["MQTT subscriber"] --> F["Streaming multi-view features"]
-        F --> K["Known-attack classifier"]
-        F --> O["Open-set anomaly detector"]
-        F --> D["Page-Hinkley drift monitor"]
-        K --> E["Decision engine"]
+    subgraph G["Edge gateway"]
+        C["MQTT subscriber"]
+        F["Streaming multi-view feature extraction"]
+        K["Known-attack classifier"]
+        O["Isolation Forest anomaly detector"]
+        E["Open-set decision engine"]
+        D["Page-Hinkley drift monitor"]
+        A["Guarded adaptation controller"]
+        L["Detection, drift and performance logs"]
+
+        C --> F
+        F --> K
+        F --> O
+        F --> D
+
+        K --> E
         O --> E
-        D --> A["Guarded adaptation controller"]
-        E --> L["Alerts and performance logs"]
-        A --> L
+
+        D --> A
+        E -->|"prediction, confidence and anomaly score"| A
+
+        E --> L
+        A -->|"drift and adaptation status"| L
     end
+
+    B --> C
 ```
 
 The drift monitor is a side-path component. It does not retrain the classifier
