@@ -58,7 +58,6 @@ flowchart LR
         A -->|"drift and adaptation status"| L
     end
 
-    B --> C
 ```
 
 The drift monitor is a side-path component. It does not retrain the classifier
