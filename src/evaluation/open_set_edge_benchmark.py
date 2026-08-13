@@ -3,6 +3,18 @@ from __future__ import annotations
 from typing import Any
 
 
+def calculate_measured_throughput(
+    measured_messages: int,
+    elapsed_seconds: float,
+) -> float:
+    """Calculate throughput from timed messages only, excluding warm-up."""
+    if measured_messages <= 0:
+        raise ValueError("measured_messages must be greater than zero")
+    if elapsed_seconds <= 0:
+        raise ValueError("elapsed_seconds must be greater than zero")
+    return measured_messages / elapsed_seconds
+
+
 def flatten_open_set_benchmark(
     report: dict[str, Any], run_id: int,
 ) -> dict[str, Any]:

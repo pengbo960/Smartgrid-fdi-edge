@@ -13,6 +13,7 @@ from src.detection.edge_detector import EdgeDetector
 from src.detection.model_loader import OpenSetModelBundle
 from src.evaluation.resource_monitor import ResourceMonitor
 from src.evaluation.edge_warmup import partition_device_warmup
+from src.evaluation.open_set_edge_benchmark import calculate_measured_throughput
 from src.features.data_loader import load_raw_dataset
 from src.features.feature_pipeline import StreamingFeaturePipeline
 
@@ -112,7 +113,10 @@ def main() -> None:
         "processed_messages": detector.processed_messages,
         "failed_messages": detector.failed_messages,
         "elapsed_seconds": elapsed,
-        "throughput_messages_per_second": detector.processed_messages / elapsed,
+        "throughput_messages_per_second": calculate_measured_throughput(
+            measured_messages=len(total_latencies),
+            elapsed_seconds=elapsed,
+        ),
         "latency_ms": {
             "mean": float(np.mean(total_latencies)),
             "median": percentile(total_latencies, 50),

@@ -1,4 +1,9 @@
-from src.evaluation.open_set_edge_benchmark import flatten_open_set_benchmark
+import pytest
+
+from src.evaluation.open_set_edge_benchmark import (
+    calculate_measured_throughput,
+    flatten_open_set_benchmark,
+)
 
 
 def test_flatten_open_set_benchmark() -> None:
@@ -36,3 +41,15 @@ def test_flatten_open_set_benchmark() -> None:
     assert row["total_latency_p95_ms"] == 1.2
     assert row["classifier_class"] == "LogisticRegression"
     assert row["anomaly_detector_class"] == "IsolationForest"
+
+
+def test_throughput_excludes_warmup_messages() -> None:
+    # 102 warm-up messages are deliberately absent from the numerator.
+    assert calculate_measured_throughput(1674, 10.0) == pytest.approx(167.4)
+
+
+def test_throughput_rejects_invalid_inputs() -> None:
+    with pytest.raises(ValueError, match="measured_messages"):
+        calculate_measured_throughput(0, 1.0)
+    with pytest.raises(ValueError, match="elapsed_seconds"):
+        calculate_measured_throughput(1, 0.0)
