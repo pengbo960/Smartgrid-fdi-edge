@@ -25,6 +25,34 @@
     "throughput_messages_per_second": 147.74841317855103,
     "peak_memory_mb": 165.75
   },
+  "raspberry_pi_gateway": {
+    "platform": "raspberry_pi_5_model_b",
+    "runs": 5,
+    "mean_latency_ms": 29.98504264504266,
+    "p95_latency_ms": 30.16061801999058,
+    "throughput_messages_per_second": 33.34144412735024,
+    "cpu_percent_single_core_equivalent": 99.98738028075446,
+    "peak_memory_mb": 166.95625
+  },
+  "cross_platform": {
+    "mac_runs": 5,
+    "pi_runs": 5,
+    "logistic_pi_to_mac_latency_ratio": 3.5701960311423333,
+    "random_forest_pi_to_mac_latency_ratio": 4.243008348791762,
+    "open_set_pi_to_mac_latency_ratio": 4.443329071340032
+  },
+  "live_mqtt_deployment": {
+    "scenarios": 5,
+    "messages": 3228,
+    "known_attack_alert_rate": 1.0,
+    "known_exact_classification_rate": 0.9666666666666667,
+    "unseen_attack": "gradual",
+    "unseen_unknown_recall": 0.9333333333333332,
+    "normal_alert_rate": 0.017970401691331878,
+    "mean_latency_ms": 30.65670666636954,
+    "maximum_scenario_p95_latency_ms": 41.85532809897268,
+    "maximum_latency_ms": 107.9925430003641
+  },
   "drift": {
     "runs": 5,
     "measurement_detection_delay_mean": 2.0,
@@ -35,8 +63,9 @@
     "unguarded_poisoning_shift_mean": 7.221121006514636
   },
   "limitations": {
-    "edge_hardware": "MacBook emulated edge gateway",
-    "raspberry_pi_measured": false,
-    "energy_measured": false
+    "edge_hardware": "MacBook and Raspberry Pi 5 Model B",
+    "raspberry_pi_measured": true,
+    "energy_measured": false,
+    "thermal_throttling_checked": true
   }
 }

@@ -38,4 +38,9 @@ results/**/predictions/
 results/edge/*detections.csv
 results/edge/*_run.csv
 results/edge/mqtt_*_drift*.csv
+results/edge/deployment_parity/*_predictions.csv
+results/edge/raspberry_pi/live_mqtt/
+results/edge/raspberry_pi/live_mqtt_summary.csv
+results/edge/raspberry_pi/live_mqtt_matched/*.csv
+!results/edge/raspberry_pi/live_mqtt_matched/live_mqtt_formal_summary.csv
 results/drift/drift_time_series.csv

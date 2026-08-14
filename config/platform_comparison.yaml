@@ -1,0 +1,9 @@
+inputs:
+  mac_model_summary: results/edge/repeated/model_benchmark_summary.csv
+  pi_model_summary: results/edge/raspberry_pi/model_benchmark_summary.csv
+  mac_open_set_summary: results/edge/repeated/open_set_benchmark_summary.csv
+  pi_open_set_summary: results/edge/raspberry_pi/open_set_benchmark_summary.csv
+
+output:
+  comparison_csv: results/edge/platform_comparison/platform_comparison.csv
+  comparison_figure: results/edge/platform_comparison/platform_comparison.png

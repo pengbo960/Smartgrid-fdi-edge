@@ -1,0 +1,7 @@
+inputs:
+  mac_summary: results/edge/fixed_rate/macbook_summary.csv
+  pi_summary: results/edge/fixed_rate/raspberry_pi_summary.csv
+
+output:
+  comparison_csv: results/edge/fixed_rate/platform_comparison.csv
+  cpu_figure: results/edge/fixed_rate/platform_cpu_comparison.png

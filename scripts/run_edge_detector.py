@@ -29,6 +29,17 @@ def parse_args() -> argparse.Namespace:
         description="Run the real-time MQTT open-set edge detector."
     )
     parser.add_argument("--config", default="config/edge.yaml")
+    parser.add_argument(
+        "--broker-host",
+        default=None,
+        help="Override the MQTT broker host from config/mqtt.yaml.",
+    )
+    parser.add_argument(
+        "--broker-port",
+        type=int,
+        default=None,
+        help="Override the MQTT broker port from config/mqtt.yaml.",
+    )
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument(
         "--print-normal", action="store_true",
@@ -90,9 +101,19 @@ def main() -> None:
     )
 
     broker = mqtt_config["broker"]
+    broker_host = (
+        args.broker_host if args.broker_host is not None else str(broker["host"])
+    )
+    broker_port = (
+        args.broker_port if args.broker_port is not None else int(broker["port"])
+    )
+    if not broker_host:
+        raise ValueError("MQTT broker host must not be empty")
+    if broker_port <= 0:
+        raise ValueError("MQTT broker port must be greater than zero")
     subscriber = MqttSubscriber(
-        host=str(broker["host"]),
-        port=int(broker["port"]),
+        host=broker_host,
+        port=broker_port,
         client_id=str(edge_config["mqtt"]["client_id"]),
         topic=str(mqtt_config["topic"]["measurement_subscription"]),
         message_handler=detector.process,
@@ -103,6 +124,7 @@ def main() -> None:
     signal.signal(signal.SIGINT, stop_handler)
     signal.signal(signal.SIGTERM, stop_handler)
     print(f"Platform: {edge_config['platform_label']}")
+    print(f"MQTT broker: {broker_host}:{broker_port}")
     print(f"Detection log: {output.resolve()}")
     try:
         subscriber.connect()

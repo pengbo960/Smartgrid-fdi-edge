@@ -8,7 +8,7 @@ SMOKE_RAW_DIR := data/raw/smoke_runs
 
 PROCESSED_DATASET := data/processed/multiview_dataset.csv
 
-.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark edge-benchmark-repeated open-set-edge-benchmark-repeated compare-models repeated-experiments drift drift-repeated drift-phases drift-live-repeated-summary final-summary experiments
+.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark edge-benchmark-repeated open-set-edge-benchmark-repeated platform-comparison fixed-rate-edge-benchmark fixed-rate-platform-comparison compare-models repeated-experiments drift drift-repeated drift-phases drift-live-repeated-summary final-summary experiments
 
 help:
 	@echo "Available commands:"
@@ -26,6 +26,9 @@ help:
 	@echo "  make edge-benchmark INPUT=data/raw/training_runs/normal_run_01.csv"
 	@echo "  make edge-benchmark-repeated"
 	@echo "  make open-set-edge-benchmark-repeated"
+	@echo "  make platform-comparison"
+	@echo "  make fixed-rate-edge-benchmark"
+	@echo "  make fixed-rate-platform-comparison"
 	@echo "  make compare-models"
 	@echo "  make repeated-experiments"
 	@echo "  make drift"
@@ -99,6 +102,18 @@ edge-benchmark-repeated:
 open-set-edge-benchmark-repeated:
 	$(PYTHON) scripts/run_repeated_open_set_edge_benchmark.py \
 		--config config/repeated_open_set_edge_benchmark.yaml
+
+platform-comparison:
+	$(PYTHON) scripts/compare_edge_platforms.py \
+		--config config/platform_comparison.yaml
+
+fixed-rate-edge-benchmark:
+	$(PYTHON) scripts/run_fixed_rate_edge_benchmark.py \
+		--config config/fixed_rate_edge_benchmark.yaml
+
+fixed-rate-platform-comparison:
+	$(PYTHON) scripts/compare_fixed_rate_platforms.py \
+		--config config/fixed_rate_platform_comparison.yaml
 
 compare-models:
 	$(PYTHON) scripts/compare_models.py \

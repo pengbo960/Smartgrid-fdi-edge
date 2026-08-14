@@ -224,6 +224,28 @@ pipeline with the same per-device warm-up policy:
 make open-set-edge-benchmark-repeated
 ```
 
+After copying the five-run Raspberry Pi summaries into
+`results/edge/raspberry_pi/`, generate the cross-platform table and figure:
+
+```bash
+make platform-comparison
+```
+
+Maximum-throughput benchmarks intentionally keep one CPU core saturated. To
+measure CPU utilisation under the same realistic incoming load, run the
+fixed-rate benchmark at 3, 10 and 25 messages/s:
+
+```bash
+make fixed-rate-edge-benchmark
+```
+
+The fixed-rate runner executes Logistic Regression, Random Forest and the full
+open-set pipeline in fresh processes for five repetitions. It reports process
+CPU as both single-core equivalent utilisation and percentage of total logical
+machine capacity, CPU time per message, missed processing deadlines, latency,
+memory and (on Raspberry Pi) temperature and throttling state. Use
+`config/raspberry_pi_fixed_rate_edge_benchmark.yaml` on the Pi.
+
 ## Real-time edge detector
 
 Train the open-set artifacts first:
@@ -244,6 +266,30 @@ Then publish any configured scenario from a separate terminal:
 python scripts/run_simulator.py \
   --scenario config/scenarios/topic_spoof.yaml
 ```
+
+The formal Raspberry Pi live-MQTT scenarios use dedicated configurations with
+the same 0.5-second publishing interval as the model-development dataset:
+
+```bash
+python scripts/run_simulator.py \
+  --scenario config/scenarios/live_pi_normal.yaml
+
+python scripts/run_simulator.py \
+  --scenario config/scenarios/live_pi_constant.yaml
+
+python scripts/run_simulator.py \
+  --scenario config/scenarios/live_pi_replay.yaml
+
+python scripts/run_simulator.py \
+  --scenario config/scenarios/live_pi_topic_spoof.yaml
+
+python scripts/run_simulator.py \
+  --scenario config/scenarios/live_pi_gradual_extended.yaml
+```
+
+Do not substitute the one-second development scenarios for this evaluation.
+Changing the publishing interval changes temporal features and constitutes a
+communication-rate distribution shift rather than a matched deployment test.
 
 Per-message output includes the known prediction, open-set decision,
 confidence, anomaly score, drift status and feature/model/total latency. When
@@ -315,6 +361,14 @@ five calibration replays.
 | MacBook mean edge latency | 6.76 ms |
 | MacBook P95 edge latency | 6.96 ms |
 | MacBook maximum replay throughput | 147.75 messages/s |
+| Raspberry Pi open-set mean latency, five-run benchmark | 29.99 ms |
+| Raspberry Pi open-set maximum replay throughput | 33.34 messages/s |
+| Live MQTT known-attack alert rate on Raspberry Pi | 100% |
+| Live MQTT known-attack exact classification rate | 96.67% |
+| Live MQTT excluded-gradual unknown recall | 93.33% |
+| Live MQTT pooled normal alert rate | 1.80% |
+| Live MQTT weighted mean detection latency | 30.66 ms |
+| Live MQTT maximum per-scenario P95 latency | 41.86 ms |
 | Measurement drift delay, five-run mean | 2.0 messages |
 | Communication drift delay, five-run mean | 4.8 messages |
 | Guarded poisoning reference shift | 1.21 V |
@@ -325,6 +379,11 @@ five calibration replays.
 | Live MQTT communication active-alert reduction | 99.11% |
 
 The consolidated machine-readable results are generated under `results/final/`.
+The dissertation-ready Raspberry Pi live-MQTT table is written to
+`results/final/live_mqtt_deployment_table.csv`. The formal live deployment
+used 3,228 messages across five scenarios. Constant, replay and topic-spoof
+attacks were all alerted; gradual manipulation was excluded from training and
+was therefore evaluated by its `unknown` decision rate.
 The labelled live MQTT drift summary is stored in
 `results/drift/live_mqtt_summary.json`. A return to the original operating
 condition is reported separately as a recovery phase because it constitutes a
@@ -337,9 +396,11 @@ not committed because they are generated and may be large. Configuration,
 ordered model metadata, metrics summaries and selected figures are retained.
 Run the corresponding `make` targets to regenerate local artifacts.
 
-## Deployment limitation
+## Edge hardware evaluation
 
-The real-time framework was implemented and evaluated on an Apple Silicon
-MacBook acting as an **emulated edge gateway**. The repository does not claim
-Raspberry Pi hardware, energy or thermal measurements. Raspberry Pi latency,
-resource and energy comparison remains future hardware validation.
+The fixed deployment artifacts and identical raw message stream were evaluated
+on both an Apple Silicon MacBook and a 64-bit Raspberry Pi 5 Model B. Repeated
+benchmarks report latency, throughput, process CPU and peak resident memory;
+Raspberry Pi runs also record temperature and firmware throttling state. Direct
+electrical energy consumption is not claimed because no external power meter
+was used.

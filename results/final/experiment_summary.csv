@@ -17,6 +17,28 @@ edge_gateway,mean_latency_ms,6.763459066073787
 edge_gateway,p95_latency_ms,6.96299021365121
 edge_gateway,throughput_messages_per_second,147.74841317855103
 edge_gateway,peak_memory_mb,165.75
+raspberry_pi_gateway,platform,raspberry_pi_5_model_b
+raspberry_pi_gateway,runs,5
+raspberry_pi_gateway,mean_latency_ms,29.98504264504266
+raspberry_pi_gateway,p95_latency_ms,30.16061801999058
+raspberry_pi_gateway,throughput_messages_per_second,33.34144412735024
+raspberry_pi_gateway,cpu_percent_single_core_equivalent,99.98738028075446
+raspberry_pi_gateway,peak_memory_mb,166.95625
+cross_platform,mac_runs,5
+cross_platform,pi_runs,5
+cross_platform,logistic_pi_to_mac_latency_ratio,3.5701960311423333
+cross_platform,random_forest_pi_to_mac_latency_ratio,4.243008348791762
+cross_platform,open_set_pi_to_mac_latency_ratio,4.443329071340032
+live_mqtt_deployment,scenarios,5
+live_mqtt_deployment,messages,3228
+live_mqtt_deployment,known_attack_alert_rate,1.0
+live_mqtt_deployment,known_exact_classification_rate,0.9666666666666667
+live_mqtt_deployment,unseen_attack,gradual
+live_mqtt_deployment,unseen_unknown_recall,0.9333333333333332
+live_mqtt_deployment,normal_alert_rate,0.017970401691331878
+live_mqtt_deployment,mean_latency_ms,30.65670666636954
+live_mqtt_deployment,maximum_scenario_p95_latency_ms,41.85532809897268
+live_mqtt_deployment,maximum_latency_ms,107.9925430003641
 drift,runs,5
 drift,measurement_detection_delay_mean,2.0
 drift,communication_detection_delay_mean,4.8
@@ -24,6 +46,7 @@ drift,adaptation_delay_mean,113.0
 drift,final_alert_rate_mean,0.0
 drift,guarded_poisoning_shift_mean,1.2125739487636849
 drift,unguarded_poisoning_shift_mean,7.221121006514636
-limitations,edge_hardware,MacBook emulated edge gateway
-limitations,raspberry_pi_measured,False
+limitations,edge_hardware,MacBook and Raspberry Pi 5 Model B
+limitations,raspberry_pi_measured,True
 limitations,energy_measured,False
+limitations,thermal_throttling_checked,True

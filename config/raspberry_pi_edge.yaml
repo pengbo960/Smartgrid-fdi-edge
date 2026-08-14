@@ -1,0 +1,51 @@
+platform_label: raspberry_pi_5_model_b
+
+mqtt:
+  client_id: edge-detector-raspberry-pi
+
+features:
+  window_size: 20
+  minimum_history: 2
+  power_factor: 0.95
+  repeated_value_field: voltage
+  value_tolerance: 0.000001
+
+artifacts:
+  classifier: models/open_set_known_classifier.joblib
+  scaler: models/open_set_scaler.joblib
+  anomaly_detector: models/open_set_anomaly_detector.joblib
+  metadata: models/open_set_metadata.json
+
+drift:
+  enabled: false
+  features:
+    - name: voltage_rolling_mean
+      delta: 0.05
+      threshold: 220.0
+      minimum_instances: 50
+    - name: source_publish_interval
+      delta: 0.01
+      threshold: 2.0
+      minimum_instances: 50
+
+  adaptation:
+    enabled: false
+    auto_approve: false
+    approval_ttl_messages: 300
+    allow_approved_prediction_override: false
+    adaptive_features:
+      - voltage_rolling_mean
+      - source_publish_interval
+    calibration_samples: 50
+    minimum_history: 20
+    trusted_confidence: 0.98
+    maximum_trusted_anomaly: 0.75
+    window_size: 30
+    minimum_samples: 20
+    blend_rate: 0.5
+    maximum_update_step: 1.0
+
+output:
+  detections: results/edge/raspberry_pi/detections.csv
+  benchmark: results/edge/raspberry_pi/open_set_benchmark.json
+  print_normal: false

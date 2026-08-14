@@ -11,6 +11,19 @@ SOURCES = {
     "ablation": Path("results/v2/ablation/ablation_summary.csv"),
     "open_set": Path("results/open_set/metrics/open_set_metrics.json"),
     "edge": Path("results/edge/macbook_benchmark.json"),
+    "edge_mac_repeated": Path(
+        "results/edge/repeated/open_set_benchmark_summary.csv"
+    ),
+    "edge_pi_repeated": Path(
+        "results/edge/raspberry_pi/open_set_benchmark_summary.csv"
+    ),
+    "platform_comparison": Path(
+        "results/edge/platform_comparison/platform_comparison.csv"
+    ),
+    "live_mqtt": Path(
+        "results/edge/raspberry_pi/live_mqtt_matched/"
+        "live_mqtt_formal_summary.csv"
+    ),
     "model_comparison": Path("results/model_comparison/model_comparison.csv"),
     "drift": Path("results/drift/drift_repeated_summary.json"),
 }
@@ -30,12 +43,28 @@ def build_summary() -> tuple[dict[str, Any], pd.DataFrame]:
     models = pd.read_csv(SOURCES["model_comparison"])
     open_set = load_json(SOURCES["open_set"])
     edge = load_json(SOURCES["edge"])
+    edge_mac_repeated = pd.read_csv(SOURCES["edge_mac_repeated"]).iloc[0]
+    edge_pi_repeated = pd.read_csv(SOURCES["edge_pi_repeated"]).iloc[0]
+    platform_comparison = pd.read_csv(SOURCES["platform_comparison"])
+    live_mqtt = pd.read_csv(SOURCES["live_mqtt"])
     drift = load_json(SOURCES["drift"])
 
     all_views = ablation.loc[ablation["experiment_name"] == "all_views"].iloc[0]
     logistic = models.loc[models["model_name"] == "logistic_regression"].iloc[0]
     forest = models.loc[models["model_name"] == "random_forest"].iloc[0]
     drift_summary = drift["summary"]
+    live_by_scenario = live_mqtt.set_index("scenario_id")
+    known_live = live_mqtt[
+        live_mqtt["scenario_id"].isin(
+            ["constant_01", "replay_01", "topic_spoof_01"]
+        )
+    ]
+    gradual_live = live_by_scenario.loc["gradual_run_01"]
+    live_normal_messages = live_mqtt["normal_messages"].sum()
+    live_normal_alerts = (
+        live_mqtt["normal_messages"] * live_mqtt["normal_alert_rate"]
+    ).sum()
+    live_messages = live_mqtt["messages"].sum()
 
     summary = {
         "multi_view": {
@@ -68,6 +97,86 @@ def build_summary() -> tuple[dict[str, Any], pd.DataFrame]:
             ),
             "peak_memory_mb": float(edge["peak_memory_mb_after"]),
         },
+        "raspberry_pi_gateway": {
+            "platform": str(edge_pi_repeated["platform_label"]),
+            "runs": int(edge_pi_repeated["runs"]),
+            "mean_latency_ms": float(
+                edge_pi_repeated["total_latency_mean_ms_mean"]
+            ),
+            "p95_latency_ms": float(
+                edge_pi_repeated["total_latency_p95_ms_mean"]
+            ),
+            "throughput_messages_per_second": float(
+                edge_pi_repeated["throughput_messages_per_second_mean"]
+            ),
+            "cpu_percent_single_core_equivalent": float(
+                edge_pi_repeated[
+                    "cpu_percent_single_core_equivalent_mean"
+                ]
+            ),
+            "peak_memory_mb": float(
+                edge_pi_repeated["process_peak_memory_after_mb_mean"]
+            ),
+        },
+        "cross_platform": {
+            "mac_runs": int(edge_mac_repeated["runs"]),
+            "pi_runs": int(edge_pi_repeated["runs"]),
+            "logistic_pi_to_mac_latency_ratio": float(
+                platform_comparison.loc[
+                    platform_comparison["pipeline"] == "logistic_regression",
+                    "pi_to_mac_latency_ratio",
+                ].iloc[0]
+            ),
+            "random_forest_pi_to_mac_latency_ratio": float(
+                platform_comparison.loc[
+                    platform_comparison["pipeline"] == "random_forest",
+                    "pi_to_mac_latency_ratio",
+                ].iloc[0]
+            ),
+            "open_set_pi_to_mac_latency_ratio": float(
+                platform_comparison.loc[
+                    platform_comparison["pipeline"] == "open_set",
+                    "pi_to_mac_latency_ratio",
+                ].iloc[0]
+            ),
+        },
+        "live_mqtt_deployment": {
+            "scenarios": int(len(live_mqtt)),
+            "messages": int(live_messages),
+            "known_attack_alert_rate": float(
+                (
+                    known_live["attack_messages"]
+                    * known_live["attack_alert_rate"]
+                ).sum()
+                / known_live["attack_messages"].sum()
+            ),
+            "known_exact_classification_rate": float(
+                (
+                    known_live["attack_messages"]
+                    * known_live["exact_attack_class_rate"]
+                ).sum()
+                / known_live["attack_messages"].sum()
+            ),
+            "unseen_attack": "gradual",
+            "unseen_unknown_recall": float(
+                gradual_live["unknown_rate_on_attack"]
+            ),
+            "normal_alert_rate": float(
+                live_normal_alerts / live_normal_messages
+            ),
+            "mean_latency_ms": float(
+                (
+                    live_mqtt["messages"] * live_mqtt["mean_latency_ms"]
+                ).sum()
+                / live_messages
+            ),
+            "maximum_scenario_p95_latency_ms": float(
+                live_mqtt["p95_latency_ms"].max()
+            ),
+            "maximum_latency_ms": float(
+                live_mqtt["maximum_latency_ms"].max()
+            ),
+        },
         "drift": {
             "runs": int(drift["runs"]),
             "measurement_detection_delay_mean": float(
@@ -90,9 +199,10 @@ def build_summary() -> tuple[dict[str, Any], pd.DataFrame]:
             ),
         },
         "limitations": {
-            "edge_hardware": "MacBook emulated edge gateway",
-            "raspberry_pi_measured": False,
+            "edge_hardware": "MacBook and Raspberry Pi 5 Model B",
+            "raspberry_pi_measured": True,
             "energy_measured": False,
+            "thermal_throttling_checked": True,
         },
     }
 
@@ -109,12 +219,15 @@ def main() -> None:
     output_directory.mkdir(parents=True, exist_ok=True)
     json_path = output_directory / "experiment_summary.json"
     csv_path = output_directory / "experiment_summary.csv"
+    live_table_path = output_directory / "live_mqtt_deployment_table.csv"
     with json_path.open("w", encoding="utf-8") as file:
         json.dump(summary, file, indent=2)
     table.to_csv(csv_path, index=False)
+    pd.read_csv(SOURCES["live_mqtt"]).to_csv(live_table_path, index=False)
     print(table.to_string(index=False))
     print(f"\nSaved to: {json_path}")
     print(f"Saved to: {csv_path}")
+    print(f"Saved to: {live_table_path}")
 
 
 if __name__ == "__main__":

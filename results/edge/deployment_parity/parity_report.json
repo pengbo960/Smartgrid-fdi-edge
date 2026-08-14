@@ -1,0 +1,22 @@
+{
+  "reference_messages": 1674,
+  "candidate_messages": 1674,
+  "compared_rows": 1674,
+  "identity_matches": 1674,
+  "identity_match_rate": 1.0,
+  "known_prediction_matches": 1674,
+  "known_prediction_match_rate": 1.0,
+  "decision_matches": 1674,
+  "decision_match_rate": 1.0,
+  "categorical_match_rate": 1.0,
+  "numeric_match_rate": 1.0,
+  "overall_match_rate": 1.0,
+  "maximum_confidence_difference": 0.0,
+  "maximum_anomaly_score_difference": 1.1102230246251565e-16,
+  "absolute_tolerance": 1e-12,
+  "relative_tolerance": 1e-12,
+  "reference_decision_fingerprint": "5fc4bd7c93d9bf50896b69674b3617acda8d344768b54d3713b3278745a5088d",
+  "candidate_decision_fingerprint": "5fc4bd7c93d9bf50896b69674b3617acda8d344768b54d3713b3278745a5088d",
+  "decision_fingerprints_match": true,
+  "parity_passed": true
+}
