@@ -35,6 +35,12 @@ SOURCES = {
     "drift_platform_comparison": Path(
         "results/drift/platform_comparison.csv"
     ),
+    "normal_load_cpu": Path(
+        "results/edge/normal_load_cpu/platform_comparison.csv"
+    ),
+    "normal_load_thermal": Path(
+        "results/edge/normal_load_cpu/thermal_observation.csv"
+    ),
 }
 
 
@@ -62,6 +68,8 @@ def build_summary() -> tuple[dict[str, Any], pd.DataFrame]:
     drift_platform_comparison = pd.read_csv(
         SOURCES["drift_platform_comparison"]
     )
+    normal_load_cpu = pd.read_csv(SOURCES["normal_load_cpu"])
+    normal_load_thermal = pd.read_csv(SOURCES["normal_load_thermal"])
 
     all_views = ablation.loc[ablation["experiment_name"] == "all_views"].iloc[0]
     logistic = models.loc[models["model_name"] == "logistic_regression"].iloc[0]
@@ -82,6 +90,7 @@ def build_summary() -> tuple[dict[str, Any], pd.DataFrame]:
         live_mqtt["normal_messages"] * live_mqtt["normal_alert_rate"]
     ).sum()
     live_messages = live_mqtt["messages"].sum()
+    normal_cpu_by_pipeline = normal_load_cpu.set_index("pipeline")
 
     summary = {
         "multi_view": {
@@ -282,12 +291,76 @@ def build_summary() -> tuple[dict[str, Any], pd.DataFrame]:
             ),
             "throttled_status_all_checkpoints": "0x0",
         },
+        "normal_mqtt_cpu": {
+            "message_rate": 6.0,
+            "runs_per_pipeline": 5,
+            "logistic_mac_single_core_percent": float(
+                normal_cpu_by_pipeline.loc[
+                    "logistic_regression",
+                    "cpu_percent_single_core_equivalent_mean_mac",
+                ]
+            ),
+            "logistic_pi_single_core_percent": float(
+                normal_cpu_by_pipeline.loc[
+                    "logistic_regression",
+                    "cpu_percent_single_core_equivalent_mean_pi",
+                ]
+            ),
+            "random_forest_mac_single_core_percent": float(
+                normal_cpu_by_pipeline.loc[
+                    "random_forest",
+                    "cpu_percent_single_core_equivalent_mean_mac",
+                ]
+            ),
+            "random_forest_pi_single_core_percent": float(
+                normal_cpu_by_pipeline.loc[
+                    "random_forest",
+                    "cpu_percent_single_core_equivalent_mean_pi",
+                ]
+            ),
+            "open_set_mac_single_core_percent": float(
+                normal_cpu_by_pipeline.loc[
+                    "open_set",
+                    "cpu_percent_single_core_equivalent_mean_mac",
+                ]
+            ),
+            "open_set_pi_single_core_percent": float(
+                normal_cpu_by_pipeline.loc[
+                    "open_set",
+                    "cpu_percent_single_core_equivalent_mean_pi",
+                ]
+            ),
+            "deadline_misses_mac": float(
+                normal_load_cpu["deadline_misses_mean_mac"].sum()
+            ),
+            "deadline_misses_pi": float(
+                normal_load_cpu["deadline_misses_mean_pi"].sum()
+            ),
+            "pi_temperature_before_c": float(
+                normal_load_thermal.loc[
+                    normal_load_thermal["checkpoint"]
+                    == "before_normal_load_benchmark",
+                    "temperature_c",
+                ].iloc[0]
+            ),
+            "pi_temperature_after_c": float(
+                normal_load_thermal.loc[
+                    normal_load_thermal["checkpoint"]
+                    == "after_normal_load_benchmark",
+                    "temperature_c",
+                ].iloc[0]
+            ),
+            "thermal_throttling_observed": bool(
+                (normal_load_thermal["throttled_status"] != "0x0").any()
+            ),
+        },
         "limitations": {
             "edge_hardware": "MacBook and Raspberry Pi 5 Model B",
             "raspberry_pi_measured": True,
             "raspberry_pi_drift_measured": True,
             "energy_measured": False,
             "thermal_throttling_checked": True,
+            "normal_load_cpu_measured": True,
         },
     }
 

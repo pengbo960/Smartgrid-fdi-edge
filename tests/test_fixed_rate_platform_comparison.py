@@ -3,6 +3,7 @@ import pytest
 
 from src.evaluation.fixed_rate_platform_comparison import (
     build_fixed_rate_platform_comparison,
+    concatenate_fixed_rate_summaries,
 )
 
 
@@ -44,3 +45,27 @@ def test_unmatched_fixed_rate_groups_are_rejected() -> None:
     pi = make_summary(4.0).iloc[:-1]
     with pytest.raises(ValueError, match="do not match"):
         build_fixed_rate_platform_comparison(mac, pi)
+
+
+def test_concatenate_fixed_rate_summaries_adds_normal_rate() -> None:
+    base = make_summary(2.0)
+    normal = base.loc[base["configured_message_rate"] == 3.0].copy()
+    normal["configured_message_rate"] = 6.0
+    combined = concatenate_fixed_rate_summaries(
+        [base, normal],
+        platform="MacBook",
+    )
+    assert sorted(combined["configured_message_rate"].unique()) == [
+        3.0,
+        6.0,
+        10.0,
+        25.0,
+    ]
+
+
+def test_concatenate_fixed_rate_summaries_rejects_duplicates() -> None:
+    with pytest.raises(ValueError, match="duplicate groups"):
+        concatenate_fixed_rate_summaries(
+            [make_summary(2.0), make_summary(2.0)],
+            platform="MacBook",
+        )

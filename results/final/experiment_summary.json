@@ -85,11 +85,27 @@
     "thermal_throttling_observed": false,
     "throttled_status_all_checkpoints": "0x0"
   },
+  "normal_mqtt_cpu": {
+    "message_rate": 6.0,
+    "runs_per_pipeline": 5,
+    "logistic_mac_single_core_percent": 2.7142065623579965,
+    "logistic_pi_single_core_percent": 1.853402217749825,
+    "random_forest_mac_single_core_percent": 13.140462289519116,
+    "random_forest_pi_single_core_percent": 21.15037569377096,
+    "open_set_mac_single_core_percent": 13.63503958824666,
+    "open_set_pi_single_core_percent": 23.49823337144067,
+    "deadline_misses_mac": 0.0,
+    "deadline_misses_pi": 0.0,
+    "pi_temperature_before_c": 47.2,
+    "pi_temperature_after_c": 48.3,
+    "thermal_throttling_observed": false
+  },
   "limitations": {
     "edge_hardware": "MacBook and Raspberry Pi 5 Model B",
     "raspberry_pi_measured": true,
     "raspberry_pi_drift_measured": true,
     "energy_measured": false,
-    "thermal_throttling_checked": true
+    "thermal_throttling_checked": true,
+    "normal_load_cpu_measured": true
   }
 }

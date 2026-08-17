@@ -264,7 +264,10 @@ make normal-load-cpu-platform-comparison
 ```
 
 This dedicated experiment does not overwrite the 3/10/25 messages/s load
-curves and must not be described as a maximum-throughput benchmark.
+summaries and must not be described as a maximum-throughput benchmark. The
+cross-platform plotting configuration combines the independent 6 messages/s
+summary with the 3/10/25 messages/s rate sweep only in a derived table and
+figure; the normal-load point is explicitly identified in both outputs.
 
 ## Real-time edge detector
 
@@ -416,6 +419,11 @@ five calibration replays.
 | Raspberry Pi communication alert reduction, five runs | 99.11 ± 0.0% |
 | Raspberry Pi maximum observed drift-trial temperature | 60.9 C |
 | Raspberry Pi throttling status at all 12 recorded checkpoints | `0x0` (none) |
+| MacBook open-set CPU at normal 6 msg/s | 13.64 ± 0.61% of one logical core |
+| Raspberry Pi open-set CPU at normal 6 msg/s | 23.50 ± 0.51% of one logical core |
+| Normal-load deadline misses on both platforms | 0 |
+| Raspberry Pi normal-load temperature before/after | 47.2 / 48.3 C |
+| Raspberry Pi normal-load throttling status before/after | `0x0` (none) |
 
 The consolidated machine-readable results are generated under `results/final/`.
 The dissertation-ready Raspberry Pi live-MQTT table is written to

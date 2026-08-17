@@ -14,6 +14,18 @@ PIPELINE_LABELS = {
 }
 
 
+def concatenate_fixed_rate_summaries(
+    summaries: list[pd.DataFrame],
+    platform: str,
+) -> pd.DataFrame:
+    """Combine independently generated rate summaries without duplicates."""
+    if not summaries:
+        raise ValueError(f"No {platform} fixed-rate summaries were provided")
+    combined = pd.concat(summaries, ignore_index=True)
+    _validate_summary(combined, platform)
+    return combined
+
+
 def _validate_summary(frame: pd.DataFrame, platform: str) -> None:
     required = {
         "pipeline",
@@ -86,6 +98,15 @@ def build_fixed_rate_platform_comparison(
             comparison["pipeline"]
         ),
     )
+    comparison.insert(
+        3,
+        "traffic_profile",
+        np.where(
+            comparison["configured_message_rate"].eq(6.0),
+            "formal_normal_mqtt_load",
+            "controlled_rate_sweep",
+        ),
+    )
     comparison["pi_to_mac_cpu_ratio"] = (
         comparison["cpu_percent_single_core_equivalent_mean_pi"]
         / comparison["cpu_percent_single_core_equivalent_mean_mac"]
@@ -121,6 +142,14 @@ def save_fixed_rate_cpu_figure(
         if selected.empty:
             raise ValueError(f"Missing fixed-rate results for {pipeline}")
         rates = selected["configured_message_rate"].to_numpy(dtype=float)
+        if np.isclose(rates, 6.0).any():
+            axis.axvspan(
+                5.55,
+                6.45,
+                color="#6C757D",
+                alpha=0.10,
+                label="Normal load (6 msg/s)" if pipeline == pipelines[0] else None,
+            )
         for platform, label, colour, marker, x_offset, label_offset in (
             ("mac", "MacBook", "#3478BF", "o", -0.12, (-8, 7)),
             ("pi", "Raspberry Pi 5", "#D9534F", "s", 0.12, (8, 7)),
@@ -166,7 +195,8 @@ def save_fixed_rate_cpu_figure(
     )
     axes[0].set_ylim(0.0, max(10.0, maximum * 1.18))
     figure.suptitle(
-        "CPU utilisation under fixed incoming load (mean ± sample SD, five runs)"
+        "CPU utilisation under fixed incoming load "
+        "(6 msg/s = formal normal MQTT rate; mean ± sample SD, five runs)"
     )
     figure.tight_layout()
     destination = Path(output_path)

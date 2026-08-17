@@ -1,0 +1,3 @@
+checkpoint,temperature_c,throttled_status
+before_normal_load_benchmark,47.2,0x0
+after_normal_load_benchmark,48.3,0x0
