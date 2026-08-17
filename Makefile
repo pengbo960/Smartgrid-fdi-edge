@@ -8,7 +8,7 @@ SMOKE_RAW_DIR := data/raw/smoke_runs
 
 PROCESSED_DATASET := data/processed/multiview_dataset.csv
 
-.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark edge-benchmark-repeated open-set-edge-benchmark-repeated platform-comparison fixed-rate-edge-benchmark fixed-rate-platform-comparison compare-models repeated-experiments drift drift-repeated drift-phases drift-live-repeated-summary drift-platform-comparison final-summary experiments
+.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark edge-benchmark-repeated open-set-edge-benchmark-repeated platform-comparison fixed-rate-edge-benchmark fixed-rate-platform-comparison normal-load-cpu-benchmark normal-load-cpu-platform-comparison compare-models repeated-experiments drift drift-repeated drift-phases drift-live-repeated-summary drift-platform-comparison final-summary experiments
 
 help:
 	@echo "Available commands:"
@@ -29,6 +29,8 @@ help:
 	@echo "  make platform-comparison"
 	@echo "  make fixed-rate-edge-benchmark"
 	@echo "  make fixed-rate-platform-comparison"
+	@echo "  make normal-load-cpu-benchmark"
+	@echo "  make normal-load-cpu-platform-comparison"
 	@echo "  make compare-models"
 	@echo "  make repeated-experiments"
 	@echo "  make drift"
@@ -115,6 +117,14 @@ fixed-rate-edge-benchmark:
 fixed-rate-platform-comparison:
 	$(PYTHON) scripts/compare_fixed_rate_platforms.py \
 		--config config/fixed_rate_platform_comparison.yaml
+
+normal-load-cpu-benchmark:
+	$(PYTHON) scripts/run_fixed_rate_edge_benchmark.py \
+		--config config/normal_load_cpu_benchmark.yaml
+
+normal-load-cpu-platform-comparison:
+	$(PYTHON) scripts/compare_fixed_rate_platforms.py \
+		--config config/normal_load_cpu_platform_comparison.yaml
 
 compare-models:
 	$(PYTHON) scripts/compare_models.py \

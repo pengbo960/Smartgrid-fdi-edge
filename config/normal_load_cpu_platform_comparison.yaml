@@ -1,0 +1,7 @@
+inputs:
+  mac_summary: results/edge/normal_load_cpu/macbook_summary.csv
+  pi_summary: results/edge/normal_load_cpu/raspberry_pi_summary.csv
+
+output:
+  comparison_csv: results/edge/normal_load_cpu/platform_comparison.csv
+  cpu_figure: results/edge/normal_load_cpu/platform_cpu_comparison.png

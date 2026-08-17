@@ -246,6 +246,26 @@ machine capacity, CPU time per message, missed processing deadlines, latency,
 memory and (on Raspberry Pi) temperature and throttling state. Use
 `config/raspberry_pi_fixed_rate_edge_benchmark.yaml` on the Pi.
 
+The formal normal MQTT topology produces six messages/s in total (three
+devices, each publishing every 0.5 seconds). Measure CPU at that exact rate
+using only normal messages on the MacBook with:
+
+```bash
+make normal-load-cpu-benchmark
+```
+
+Run the same command on the Raspberry Pi by invoking
+`scripts/run_fixed_rate_edge_benchmark.py` with
+`config/raspberry_pi_normal_load_cpu_benchmark.yaml`. After copying the Pi
+summary back to `results/edge/normal_load_cpu/raspberry_pi_summary.csv`, run:
+
+```bash
+make normal-load-cpu-platform-comparison
+```
+
+This dedicated experiment does not overwrite the 3/10/25 messages/s load
+curves and must not be described as a maximum-throughput benchmark.
+
 ## Real-time edge detector
 
 Train the open-set artifacts first:

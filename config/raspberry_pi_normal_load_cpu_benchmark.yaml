@@ -1,0 +1,33 @@
+platform_label: raspberry_pi_5_normal_mqtt_load
+input: data/raw/multiview_v2_runs/normal_run_01.csv
+repetitions: 5
+duration_seconds: 20
+message_rates:
+  - 6
+warmup_messages_per_device: 34
+
+features:
+  window_size: 20
+  minimum_history: 2
+  power_factor: 0.95
+  repeated_value_field: voltage
+  value_tolerance: 0.000001
+
+pipelines:
+  logistic_regression:
+    mode: comparison
+    artifact: models/comparison_logistic_regression.joblib
+  random_forest:
+    mode: comparison
+    artifact: models/comparison_random_forest.joblib
+  open_set:
+    mode: open_set
+    artifacts:
+      classifier: models/open_set_known_classifier.joblib
+      scaler: models/open_set_scaler.joblib
+      anomaly_detector: models/open_set_anomaly_detector.joblib
+      metadata: models/open_set_metadata.json
+
+output:
+  runs_csv: results/edge/normal_load_cpu/raspberry_pi_runs.csv
+  summary_csv: results/edge/normal_load_cpu/raspberry_pi_summary.csv
