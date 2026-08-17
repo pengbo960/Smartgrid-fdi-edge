@@ -1,0 +1,7 @@
+inputs:
+  mac_summary: results/drift/repeated_live/live_drift_summary.csv
+  pi_summary: results/drift/raspberry_pi_repeated_live/live_drift_summary.csv
+
+output:
+  comparison_csv: results/drift/platform_comparison.csv
+  comparison_figure: results/drift/platform_comparison.png

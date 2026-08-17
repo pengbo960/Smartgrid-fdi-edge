@@ -1,0 +1,13 @@
+checkpoint,temperature_c,throttled_status
+before_run_01_measurement,39.5,0x0
+after_run_01_measurement,45.0,0x0
+after_run_01_communication,52.1,0x0
+before_run_02_measurement,49.9,0x0
+after_run_02_measurement,54.9,0x0
+after_run_03_measurement,55.4,0x0
+after_run_04_measurement,56.5,0x0
+after_run_05_measurement,58.7,0x0
+after_run_02_communication,59.8,0x0
+after_run_03_communication,60.4,0x0
+after_run_04_communication,59.8,0x0
+after_run_05_communication,60.9,0x0

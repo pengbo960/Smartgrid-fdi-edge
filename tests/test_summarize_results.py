@@ -12,6 +12,7 @@ def test_final_summary_contains_all_research_components() -> None:
         "cross_platform",
         "live_mqtt_deployment",
         "drift",
+        "raspberry_pi_live_drift",
         "limitations",
     }
     assert summary["open_set"]["unknown_recall"] > 0.9
@@ -19,4 +20,21 @@ def test_final_summary_contains_all_research_components() -> None:
     assert summary["raspberry_pi_gateway"]["runs"] == 5
     assert summary["live_mqtt_deployment"]["known_attack_alert_rate"] == 1.0
     assert summary["live_mqtt_deployment"]["unseen_unknown_recall"] > 0.9
+    assert summary["limitations"]["raspberry_pi_drift_measured"] is True
+    assert summary["raspberry_pi_live_drift"]["runs_per_scenario"] == 5
+    assert (
+        summary["raspberry_pi_live_drift"]
+        ["communication_detection_delay_messages"]
+        == 5.0
+    )
+    assert (
+        summary["raspberry_pi_live_drift"]
+        ["maximum_observed_temperature_c"]
+        == 60.9
+    )
+    assert (
+        summary["raspberry_pi_live_drift"]
+        ["thermal_throttling_observed"]
+        is False
+    )
     assert not table.empty

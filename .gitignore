@@ -43,4 +43,6 @@ results/edge/raspberry_pi/live_mqtt/
 results/edge/raspberry_pi/live_mqtt_summary.csv
 results/edge/raspberry_pi/live_mqtt_matched/*.csv
 !results/edge/raspberry_pi/live_mqtt_matched/live_mqtt_formal_summary.csv
+results/edge/raspberry_pi/drift_live/
+results/edge/raspberry_pi/repeated_drift/
 results/drift/drift_time_series.csv

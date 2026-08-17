@@ -26,6 +26,15 @@ SOURCES = {
     ),
     "model_comparison": Path("results/model_comparison/model_comparison.csv"),
     "drift": Path("results/drift/drift_repeated_summary.json"),
+    "pi_live_drift": Path(
+        "results/drift/raspberry_pi_repeated_live/live_drift_summary.csv"
+    ),
+    "pi_drift_thermal": Path(
+        "results/drift/raspberry_pi_repeated_live/thermal_observations.csv"
+    ),
+    "drift_platform_comparison": Path(
+        "results/drift/platform_comparison.csv"
+    ),
 }
 
 
@@ -48,11 +57,19 @@ def build_summary() -> tuple[dict[str, Any], pd.DataFrame]:
     platform_comparison = pd.read_csv(SOURCES["platform_comparison"])
     live_mqtt = pd.read_csv(SOURCES["live_mqtt"])
     drift = load_json(SOURCES["drift"])
+    pi_live_drift = pd.read_csv(SOURCES["pi_live_drift"])
+    pi_drift_thermal = pd.read_csv(SOURCES["pi_drift_thermal"])
+    drift_platform_comparison = pd.read_csv(
+        SOURCES["drift_platform_comparison"]
+    )
 
     all_views = ablation.loc[ablation["experiment_name"] == "all_views"].iloc[0]
     logistic = models.loc[models["model_name"] == "logistic_regression"].iloc[0]
     forest = models.loc[models["model_name"] == "random_forest"].iloc[0]
     drift_summary = drift["summary"]
+    pi_live_by_scenario = pi_live_drift.set_index("scenario_type")
+    pi_measurement_drift = pi_live_by_scenario.loc["measurement"]
+    pi_communication_drift = pi_live_by_scenario.loc["communication"]
     live_by_scenario = live_mqtt.set_index("scenario_id")
     known_live = live_mqtt[
         live_mqtt["scenario_id"].isin(
@@ -198,9 +215,77 @@ def build_summary() -> tuple[dict[str, Any], pd.DataFrame]:
                 drift_summary["unguarded_reference_shift"]["mean"]
             ),
         },
+        "raspberry_pi_live_drift": {
+            "runs_per_scenario": int(pi_measurement_drift["runs"]),
+            "measurement_detection_delay_messages": float(
+                pi_measurement_drift["mean_detection_delay_messages_mean"]
+            ),
+            "measurement_detection_delay_messages_std": float(
+                pi_measurement_drift["mean_detection_delay_messages_std"]
+            ),
+            "measurement_active_alert_reduction_percent": float(
+                pi_measurement_drift["active_alert_reduction_percent_mean"]
+            ),
+            "measurement_active_alert_reduction_percent_std": float(
+                pi_measurement_drift["active_alert_reduction_percent_std"]
+            ),
+            "measurement_adaptation_updates_mean": float(
+                pi_measurement_drift["adaptation_updates_mean"]
+            ),
+            "measurement_mean_latency_ms": float(
+                pi_measurement_drift["latency_mean_ms_mean"]
+            ),
+            "measurement_mean_latency_ms_std": float(
+                pi_measurement_drift["latency_mean_ms_std"]
+            ),
+            "communication_detection_delay_messages": float(
+                pi_communication_drift["mean_detection_delay_messages_mean"]
+            ),
+            "communication_detection_delay_messages_std": float(
+                pi_communication_drift["mean_detection_delay_messages_std"]
+            ),
+            "communication_active_alert_reduction_percent": float(
+                pi_communication_drift["active_alert_reduction_percent_mean"]
+            ),
+            "communication_active_alert_reduction_percent_std": float(
+                pi_communication_drift["active_alert_reduction_percent_std"]
+            ),
+            "communication_adaptation_updates_mean": float(
+                pi_communication_drift["adaptation_updates_mean"]
+            ),
+            "communication_mean_latency_ms": float(
+                pi_communication_drift["latency_mean_ms_mean"]
+            ),
+            "communication_mean_latency_ms_std": float(
+                pi_communication_drift["latency_mean_ms_std"]
+            ),
+            "measurement_pi_to_mac_latency_ratio": float(
+                drift_platform_comparison.loc[
+                    drift_platform_comparison["scenario"]
+                    == "measurement_drift",
+                    "pi_to_mac_latency_ratio",
+                ].iloc[0]
+            ),
+            "communication_pi_to_mac_latency_ratio": float(
+                drift_platform_comparison.loc[
+                    drift_platform_comparison["scenario"]
+                    == "communication_drift",
+                    "pi_to_mac_latency_ratio",
+                ].iloc[0]
+            ),
+            "thermal_observations": int(len(pi_drift_thermal)),
+            "maximum_observed_temperature_c": float(
+                pi_drift_thermal["temperature_c"].max()
+            ),
+            "thermal_throttling_observed": bool(
+                (pi_drift_thermal["throttled_status"] != "0x0").any()
+            ),
+            "throttled_status_all_checkpoints": "0x0",
+        },
         "limitations": {
             "edge_hardware": "MacBook and Raspberry Pi 5 Model B",
             "raspberry_pi_measured": True,
+            "raspberry_pi_drift_measured": True,
             "energy_measured": False,
             "thermal_throttling_checked": True,
         },

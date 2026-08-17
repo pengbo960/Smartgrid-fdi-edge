@@ -1,0 +1,50 @@
+{
+  "communication_drift_01": {
+    "active_alert_reduction_percent": 99.10913140311804,
+    "active_drift_rows": 1350,
+    "adaptation_updates": 69,
+    "affected_devices": [
+      "meter_01",
+      "meter_02",
+      "meter_03"
+    ],
+    "baseline_drift_aware_false_alerts": 11,
+    "baseline_raw_false_alerts": 11,
+    "detection_delay_messages": {
+      "meter_01": 5,
+      "meter_02": 5,
+      "meter_03": 5
+    },
+    "drift_aware_active_alerts": 12,
+    "latency_mean_ms": 31.182866672533052,
+    "latency_p95_ms": 46.42292379999162,
+    "latency_p99_ms": 46.65440934005347,
+    "mean_detection_delay_messages": 5.0,
+    "raw_active_alerts": 1347,
+    "recovery_normal_drift_rows": 67,
+    "recovery_rows": 75,
+    "rows": 1875
+  },
+  "measurement_drift_01": {
+    "active_alert_reduction_percent": 24.193548387096776,
+    "active_drift_rows": 300,
+    "adaptation_updates": 18,
+    "affected_devices": [
+      "meter_02"
+    ],
+    "baseline_drift_aware_false_alerts": 24,
+    "baseline_raw_false_alerts": 24,
+    "detection_delay_messages": {
+      "meter_02": 47
+    },
+    "drift_aware_active_alerts": 47,
+    "latency_mean_ms": 31.171270665548278,
+    "latency_p95_ms": 41.43274524997764,
+    "latency_p99_ms": 46.86129734003032,
+    "mean_detection_delay_messages": 47.0,
+    "raw_active_alerts": 62,
+    "recovery_normal_drift_rows": 144,
+    "recovery_rows": 146,
+    "rows": 1788
+  }
+}

@@ -338,6 +338,17 @@ python scripts/summarize_mqtt_drift.py \
   --output results/drift/live_mqtt_summary.json
 ```
 
+For the equivalent Raspberry Pi trial, use
+`config/raspberry_pi_edge_drift_experiment.yaml` for five independent runs of
+each scenario, store the logs under
+`results/edge/raspberry_pi/repeated_drift/`, and aggregate them into
+`results/drift/raspberry_pi_repeated_live/`. Once both five-run platform
+summaries are present, generate the labelled dissertation table and figure:
+
+```bash
+make drift-platform-comparison
+```
+
 This config enables automatic drift approval only for controlled experiments.
 The production-style `config/edge.yaml` keeps automatic approval disabled. The
 experimental approvals expire after a bounded number of device messages.
@@ -377,6 +388,14 @@ five calibration replays.
 | Live MQTT measurement active-alert reduction | 25.42% |
 | Live MQTT communication drift delay | 5 messages/device |
 | Live MQTT communication active-alert reduction | 99.11% |
+| Raspberry Pi measurement-drift mean latency, five runs | 31.21 ± 0.12 ms |
+| Raspberry Pi communication-drift mean latency, five runs | 31.45 ± 0.19 ms |
+| Raspberry Pi measurement-drift delay, five runs | 47.2 ± 0.45 messages |
+| Raspberry Pi communication-drift delay, five runs | 5.0 ± 0.0 messages/device |
+| Raspberry Pi measurement alert reduction, five runs | 19.13 ± 4.49% |
+| Raspberry Pi communication alert reduction, five runs | 99.11 ± 0.0% |
+| Raspberry Pi maximum observed drift-trial temperature | 60.9 C |
+| Raspberry Pi throttling status at all 12 recorded checkpoints | `0x0` (none) |
 
 The consolidated machine-readable results are generated under `results/final/`.
 The dissertation-ready Raspberry Pi live-MQTT table is written to
@@ -388,6 +407,15 @@ The labelled live MQTT drift summary is stored in
 `results/drift/live_mqtt_summary.json`. A return to the original operating
 condition is reported separately as a recovery phase because it constitutes a
 second, reverse distribution change rather than an ordinary false alarm.
+The repeated Raspberry Pi drift summary and MacBook comparison are stored in
+`results/drift/raspberry_pi_repeated_live/` and
+`results/drift/platform_comparison.csv`. Five-run functional results were
+closely aligned across platforms: measurement delay was 47.0 messages on the
+MacBook and 47.2 on the Pi, while communication delay was 4.8 and 5.0 messages.
+The Raspberry Pi was approximately 2.04 to 2.06 times slower than the MacBook
+for these complete drift-aware trials. Firmware status was `throttled=0x0` at
+all 12 recorded thermal checkpoints, so no current or historical
+throttling/undervoltage condition was recorded during this evaluation.
 
 ## Reproducibility and generated files
 

@@ -8,7 +8,7 @@ SMOKE_RAW_DIR := data/raw/smoke_runs
 
 PROCESSED_DATASET := data/processed/multiview_dataset.csv
 
-.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark edge-benchmark-repeated open-set-edge-benchmark-repeated platform-comparison fixed-rate-edge-benchmark fixed-rate-platform-comparison compare-models repeated-experiments drift drift-repeated drift-phases drift-live-repeated-summary final-summary experiments
+.PHONY: help test scenarios smoke-scenarios collect smoke-collect features clean-smoke validate ablation open-set edge-detector edge-benchmark edge-benchmark-repeated open-set-edge-benchmark-repeated platform-comparison fixed-rate-edge-benchmark fixed-rate-platform-comparison compare-models repeated-experiments drift drift-repeated drift-phases drift-live-repeated-summary drift-platform-comparison final-summary experiments
 
 help:
 	@echo "Available commands:"
@@ -35,6 +35,7 @@ help:
 	@echo "  make drift-repeated"
 	@echo "  make drift-phases"
 	@echo "  make drift-live-repeated-summary"
+	@echo "  make drift-platform-comparison"
 	@echo "  make final-summary"
 	@echo "  make experiments"
 
@@ -140,6 +141,10 @@ drift-live-repeated-summary:
 	$(PYTHON) scripts/summarize_repeated_live_drift.py \
 		results/edge/repeated_live/measurement_drift_run_*.csv \
 		results/edge/repeated_live/communication_drift_run_*.csv
+
+drift-platform-comparison:
+	$(PYTHON) scripts/compare_drift_platforms.py \
+		--config config/drift_platform_comparison.yaml
 
 final-summary:
 	$(PYTHON) scripts/summarize_results.py
