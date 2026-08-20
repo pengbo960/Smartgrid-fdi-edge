@@ -315,7 +315,10 @@ Changing the publishing interval changes temporal features and constitutes a
 communication-rate distribution shift rather than a matched deployment test.
 
 Per-message output includes the known prediction, open-set decision,
-confidence, anomaly score, drift status and feature/model/total latency. When
+confidence, anomaly score, drift status and feature/model/processing latency.
+Processing latency is measured from entry to the detector's per-message
+processing function to production of the final decision; it excludes MQTT and
+network transit time. When
 the guarded drift controller is enabled, `raw_decision` preserves the original
 model output and `drift_aware_decision` records the separately guarded
 operational decision.
@@ -392,17 +395,17 @@ five calibration replays.
 | Random Forest Macro-F1 | 0.99952 |
 | Excluded gradual attack unknown recall | 0.9500 |
 | Open-set unknown precision | 0.8962 |
-| MacBook mean edge latency | 6.76 ms |
-| MacBook P95 edge latency | 6.96 ms |
+| MacBook mean processing latency | 6.76 ms |
+| MacBook P95 processing latency | 6.96 ms |
 | MacBook maximum replay throughput | 147.75 messages/s |
-| Raspberry Pi open-set mean latency, five-run benchmark | 29.99 ms |
+| Raspberry Pi open-set mean processing latency, five-run benchmark | 29.99 ms |
 | Raspberry Pi open-set maximum replay throughput | 33.34 messages/s |
 | Live MQTT known-attack alert rate on Raspberry Pi | 100% |
 | Live MQTT known-attack exact classification rate | 96.67% |
 | Live MQTT excluded-gradual unknown recall | 93.33% |
 | Live MQTT pooled normal alert rate | 1.80% |
-| Live MQTT weighted mean detection latency | 30.66 ms |
-| Live MQTT maximum per-scenario P95 latency | 41.86 ms |
+| Live MQTT weighted mean processing latency | 30.66 ms |
+| Live MQTT maximum per-scenario P95 processing latency | 41.86 ms |
 | Measurement drift delay, five-run mean | 2.0 messages |
 | Communication drift delay, five-run mean | 4.8 messages |
 | Guarded poisoning reference shift | 1.21 V |
@@ -411,8 +414,8 @@ five calibration replays.
 | Live MQTT measurement active-alert reduction | 25.42% |
 | Live MQTT communication drift delay | 5 messages/device |
 | Live MQTT communication active-alert reduction | 99.11% |
-| Raspberry Pi measurement-drift mean latency, five runs | 31.21 ± 0.12 ms |
-| Raspberry Pi communication-drift mean latency, five runs | 31.45 ± 0.19 ms |
+| Raspberry Pi measurement-drift mean processing latency, five runs | 31.21 ± 0.12 ms |
+| Raspberry Pi communication-drift mean processing latency, five runs | 31.45 ± 0.19 ms |
 | Raspberry Pi measurement-drift delay, five runs | 47.2 ± 0.45 messages |
 | Raspberry Pi communication-drift delay, five runs | 5.0 ± 0.0 messages/device |
 | Raspberry Pi measurement alert reduction, five runs | 19.13 ± 4.49% |

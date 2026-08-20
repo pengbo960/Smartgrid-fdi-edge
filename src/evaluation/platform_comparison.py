@@ -118,7 +118,7 @@ def save_platform_comparison_figure(
     comparison: pd.DataFrame,
     output_path: str,
 ) -> None:
-    """Save latency, throughput and memory comparisons with five-run SD bars."""
+    """Save processing-latency, throughput and memory comparisons."""
     if comparison.empty:
         raise ValueError("Platform comparison must not be empty")
     labels = comparison["pipeline_label"].tolist()
@@ -128,7 +128,7 @@ def save_platform_comparison_figure(
     panels = (
         (
             "total_latency_mean_ms",
-            "Mean end-to-end latency (ms)",
+            "Mean processing latency\n(receive-to-decision, ms)",
             True,
             lambda value: f"{value:.2f}",
         ),
@@ -140,7 +140,7 @@ def save_platform_comparison_figure(
         ),
         (
             "process_peak_memory_after_mb",
-            "Peak process memory (MB)",
+            "Peak detector-process RSS (MB)",
             False,
             lambda value: f"{value:.1f}",
         ),
