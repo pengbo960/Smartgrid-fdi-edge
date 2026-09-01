@@ -1,5 +1,5 @@
 {
-  "mqtt_communication_drift_v2": {
+  "mqtt_communication_drift": {
     "active_alert_reduction_percent": 99.10913140311804,
     "active_drift_rows": 1350,
     "adaptation_updates": 69,
@@ -25,7 +25,7 @@
     "recovery_rows": 75,
     "rows": 1875
   },
-  "mqtt_measurement_drift_v2": {
+  "mqtt_measurement_drift": {
     "active_alert_reduction_percent": 25.423728813559322,
     "active_drift_rows": 300,
     "adaptation_updates": 17,

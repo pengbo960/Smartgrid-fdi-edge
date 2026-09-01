@@ -21,7 +21,7 @@ from src.training.prepare_dataset import (
     prepare_known_attack_dataset,
 )
 from src.training.split_data import (
-    split_stratified_grouped_dataset,
+    split_grouped_dataset,
 )
 from src.training.train_open_set import (
     save_open_set_artifacts,
@@ -297,12 +297,31 @@ def main() -> None:
         ),
     )
 
-    split = split_stratified_grouped_dataset(
+    split_strategy = str(
+        split_config.get(
+            "strategy",
+            "grouped_holdout",
+        )
+    )
+    split_fold_index = (
+        int(split_config["fold_index"])
+        if "fold_index" in split_config
+        else None
+    )
+    split = split_grouped_dataset(
         prepared=prepared,
+        strategy=split_strategy,
         random_seed=int(
             split_config.get(
                 "random_seed",
                 42,
+            )
+        ),
+        fold_index=split_fold_index,
+        validation_offset=int(
+            split_config.get(
+                "validation_offset",
+                1,
             )
         ),
     )
@@ -378,6 +397,36 @@ def main() -> None:
         raise ValueError(
             "No unseen attack rows were found"
         )
+
+    if split_strategy.strip().lower() in {
+        "grouped_kfold",
+        "grouped_fold",
+    }:
+        if split_fold_index is None:
+            raise ValueError(
+                "fold_index is required for grouped_kfold"
+            )
+        unseen_source_files = sorted(
+            unseen["source_file"]
+            .astype(str)
+            .unique()
+        )
+        if not 0 <= split_fold_index < len(
+            unseen_source_files
+        ):
+            raise ValueError(
+                "fold_index does not identify an unseen source file: "
+                f"{split_fold_index}"
+            )
+        unseen = unseen[
+            unseen["source_file"]
+            .astype(str)
+            .eq(
+                unseen_source_files[
+                    split_fold_index
+                ]
+            )
+        ].copy()
 
     (
         unseen_predictions,
@@ -484,6 +533,12 @@ def main() -> None:
             "unseen_test_rows": len(
                 unseen
             ),
+            "unseen_source_files": sorted(
+                unseen["source_file"]
+                .astype(str)
+                .unique()
+                .tolist()
+            ),
             "known_classes": list(
                 result.classes
             ),
@@ -546,6 +601,12 @@ def main() -> None:
             ),
         },
         "unseen": {
+            "unknown_true_positive": (
+                unknown_true_positive
+            ),
+            "unknown_false_positive": (
+                unknown_false_positive
+            ),
             "unknown_recall": float(
                 unseen_unknown.mean()
             ),

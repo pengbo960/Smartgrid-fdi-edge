@@ -1,6 +1,6 @@
 # Lightweight Multi-View and Drift-Aware Edge Framework for FDI Detection
 
-This repository implements an MSc dissertation prototype for detecting known
+This repository implements a prototype for detecting known
 and previously unseen false-data injection attacks in smart-grid IoT
 communications. MQTT measurement values, temporal behaviour and protocol-level
 context are analysed at an edge gateway. The framework also provides
@@ -24,7 +24,7 @@ Page-Hinkley drift monitoring and guarded statistical adaptation.
 - Real-time MQTT edge detector with latency and resource logging.
 - Two-sided Page-Hinkley measurement and communication drift monitoring.
 - Guarded candidate-window adaptation and poisoning-resistance evaluation.
-- Controlled MacBook evaluation as an emulated edge gateway.
+- Cross-platform MacBook and Raspberry Pi 5 edge evaluation.
 
 ## Architecture
 
@@ -155,6 +155,9 @@ make validate
 Run the research experiments:
 
 ```bash
+python scripts/train_baseline.py \
+  --config config/baseline.yaml
+
 make ablation
 make open-set
 make compare-models
@@ -165,8 +168,12 @@ make drift-phases
 make final-summary
 ```
 
-`make experiments` runs the complete offline experiment suite when the formal
-dataset and local model artifacts are available.
+The baseline command writes the trained Logistic Regression artifacts under
+`models/` and its metrics, predictions and figures under `results/baseline/`.
+`make experiments` runs the configured single-run offline components and final
+summary when the formal dataset and local model artifacts are available. Run
+`make repeated-experiments` separately to regenerate the five grouped-fold
+results under `results/repeated/`.
 
 `make drift-phases` analyses the two labelled live MQTT drift trials as
 baseline, pre-detection, detected-before-reference-update, post-update,
@@ -189,17 +196,19 @@ phase-wise run tables plus mean/sample-standard-deviation summaries under
 reverse-drift event can temporarily renew guarded approval after the labelled
 drift interval ends.
 
-`make repeated-experiments` repeats the ablation, Logistic Regression versus
-Random Forest, and open-set experiments with the grouped-split seeds configured
-in `config/repeated_experiments.yaml`. It writes per-run values and
-mean/sample-standard-deviation/minimum/maximum summaries to `results/repeated/`.
-These runs are repeated grouped holdouts, not k-fold cross-validation. Use a
-partial run for development with, for example:
+`make repeated-experiments` runs the ablation, Logistic Regression versus
+Random Forest, and open-set experiments over the five deterministic grouped
+folds configured in `config/repeated_experiments.yaml`. Within every scenario
+family, each source file is used once for testing and once for validation; the
+other three files are used for training. Fold `i` evaluates only gradual run
+`i` as unseen data. Per-fold values and mean/sample-standard-deviation/minimum/
+maximum summaries are written to `results/repeated/`. Use a partial run for
+development with, for example:
 
 ```bash
 python scripts/run_repeated_experiments.py \
   --sections open_set \
-  --seeds 42
+  --folds 1
 ```
 
 Repeat the MacBook streaming benchmark for the fixed Logistic Regression and
@@ -290,8 +299,8 @@ python scripts/run_simulator.py \
   --scenario config/scenarios/topic_spoof.yaml
 ```
 
-The formal Raspberry Pi live-MQTT scenarios use dedicated configurations with
-the same 0.5-second publishing interval as the model-development dataset:
+The Raspberry Pi live-MQTT scenarios use dedicated configurations with the
+same 0.5-second publishing interval as the model-development dataset:
 
 ```bash
 python scripts/run_simulator.py \
@@ -299,6 +308,9 @@ python scripts/run_simulator.py \
 
 python scripts/run_simulator.py \
   --scenario config/scenarios/live_pi_constant.yaml
+
+python scripts/run_simulator.py \
+  --scenario config/scenarios/live_pi_random.yaml
 
 python scripts/run_simulator.py \
   --scenario config/scenarios/live_pi_replay.yaml
@@ -350,7 +362,7 @@ For the two labelled MQTT drift trials, use the dedicated experimental config:
 ```bash
 python scripts/run_edge_detector.py \
   --config config/edge_drift_experiment.yaml \
-  --output results/edge/mqtt_measurement_drift_v2.csv
+  --output results/edge/mqtt_measurement_drift.csv
 ```
 
 Restart the detector between scenarios so its feature windows, drift detectors
@@ -359,8 +371,8 @@ communication trial. Summarise both completed logs with:
 
 ```bash
 python scripts/summarize_mqtt_drift.py \
-  results/edge/mqtt_measurement_drift_v2.csv \
-  results/edge/mqtt_communication_drift_v2.csv \
+  results/edge/mqtt_measurement_drift.csv \
+  results/edge/mqtt_communication_drift.csv \
   --output results/drift/live_mqtt_summary.json
 ```
 
@@ -391,23 +403,23 @@ five calibration replays.
 
 | Experiment | Result |
 |---|---:|
-| All-view Logistic Regression Macro-F1 | 0.99735 |
-| Random Forest Macro-F1 | 0.99952 |
-| Excluded gradual attack unknown recall | 0.9500 |
-| Open-set unknown precision | 0.8962 |
-| MacBook mean processing latency | 6.76 ms |
-| MacBook P95 processing latency | 6.96 ms |
-| MacBook maximum replay throughput | 147.75 messages/s |
+| All-view Logistic Regression Macro-F1, five grouped folds | 0.99716 ± 0.00060 |
+| Random Forest Macro-F1, five grouped folds | 0.99981 ± 0.00026 |
+| Excluded gradual attack unknown recall, five grouped folds | 0.9533 ± 0.0131 |
+| Open-set unknown precision, five grouped folds | 0.6230 ± 0.0394 |
+| MacBook mean processing latency, five-run benchmark | 6.75 ms |
+| MacBook P95 processing latency, five-run benchmark | 6.89 ms |
+| MacBook maximum stream-processing throughput, five-run benchmark | 148.16 messages/s |
 | Raspberry Pi open-set mean processing latency, five-run benchmark | 29.99 ms |
-| Raspberry Pi open-set maximum replay throughput | 33.34 messages/s |
+| Raspberry Pi open-set maximum stream-processing throughput | 33.34 messages/s |
 | Live MQTT known-attack alert rate on Raspberry Pi | 100% |
 | Live MQTT known-attack exact classification rate | 96.67% |
 | Live MQTT excluded-gradual unknown recall | 93.33% |
 | Live MQTT pooled normal alert rate | 1.80% |
 | Live MQTT weighted mean processing latency | 30.66 ms |
 | Live MQTT maximum per-scenario P95 processing latency | 41.86 ms |
-| Measurement drift delay, five-run mean | 2.0 messages |
-| Communication drift delay, five-run mean | 4.8 messages |
+| Synthetic measurement drift delay, five-run mean | 2.0 messages |
+| Synthetic communication drift delay, five-run mean | 4.8 messages |
 | Guarded poisoning reference shift | 1.21 V |
 | Unguarded poisoning reference shift | 7.22 V |
 | Live MQTT measurement drift delay | 47 messages |

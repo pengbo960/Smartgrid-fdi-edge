@@ -6,13 +6,13 @@
     ],
     "feature_count": 10,
     "default_threshold": 0.5,
-    "selected_threshold": 0.44,
+    "selected_threshold": 0.63,
     "threshold_metric": "macro_f1"
   },
   "dataset": {
-    "train_rows": 16035,
-    "validation_rows": 5352,
-    "test_rows": 5346,
+    "train_rows": 26682,
+    "validation_rows": 8907,
+    "test_rows": 8895,
     "train_groups": [
       "constant_run_01.csv",
       "constant_run_03.csv",
@@ -22,36 +22,48 @@
       "normal_run_04.csv",
       "random_run_02.csv",
       "random_run_03.csv",
-      "random_run_05.csv"
+      "random_run_05.csv",
+      "replay_run_01.csv",
+      "replay_run_04.csv",
+      "replay_run_05.csv",
+      "topic_spoof_run_01.csv",
+      "topic_spoof_run_02.csv",
+      "topic_spoof_run_05.csv"
     ],
     "validation_groups": [
       "constant_run_02.csv",
       "normal_run_05.csv",
-      "random_run_01.csv"
+      "random_run_01.csv",
+      "replay_run_02.csv",
+      "topic_spoof_run_03.csv"
     ],
     "test_groups": [
       "constant_run_05.csv",
       "normal_run_02.csv",
-      "random_run_04.csv"
+      "random_run_04.csv",
+      "replay_run_03.csv",
+      "topic_spoof_run_04.csv"
     ]
   },
   "test": {
-    "accuracy": 0.6771417882528994,
-    "precision": 0.2182182182182182,
-    "recall": 0.7266666666666667,
-    "f1": 0.33564280215550424,
-    "macro_f1": 0.5611992118017453,
-    "false_positive_rate": 0.32911925832279815,
-    "specificity": 0.6708807416772019,
-    "roc_auc": 0.7060542210984689,
-    "pr_auc": 0.17285819784377898,
-    "true_negative": 3184,
-    "false_positive": 1562,
-    "false_negative": 164,
-    "true_positive": 436
+    "accuracy": 0.9245643620011242,
+    "precision": 0.9025875190258752,
+    "recall": 0.49416666666666664,
+    "f1": 0.6386645126548196,
+    "macro_f1": 0.7982753304502994,
+    "false_positive_rate": 0.008317089018843404,
+    "specificity": 0.9916829109811566,
+    "roc_auc": 0.7023793047433399,
+    "pr_auc": 0.5830337890964886,
+    "true_negative": 7631,
+    "false_positive": 64,
+    "false_negative": 607,
+    "true_positive": 593
   },
   "test_attack_type_recall": {
-    "constant": 1.0,
-    "random": 0.4533333333333333
+    "constant": 0.9766666666666667,
+    "random": 0.0,
+    "replay": 0.0,
+    "topic_spoof": 1.0
   }
 }

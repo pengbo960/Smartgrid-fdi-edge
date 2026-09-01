@@ -4,6 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Iterable
 
+import numpy as np
 import pandas as pd
 
 
@@ -21,12 +22,59 @@ def validate_seeds(raw_seeds: Iterable[Any]) -> tuple[int, ...]:
     return tuple(seeds)
 
 
+def validate_folds(
+    raw_folds: Iterable[Any],
+    fold_count: int,
+) -> tuple[int, ...]:
+    """Return unique one-based fold numbers within the configured range."""
+    if isinstance(fold_count, bool) or not isinstance(fold_count, int):
+        raise TypeError("fold_count must be an integer")
+    if fold_count < 3:
+        raise ValueError("fold_count must be at least three")
+
+    folds: list[int] = []
+    for raw_fold in raw_folds:
+        if isinstance(raw_fold, bool) or not isinstance(raw_fold, int):
+            raise TypeError("Every fold number must be an integer")
+        if not 1 <= raw_fold <= fold_count:
+            raise ValueError(
+                f"Fold numbers must be between 1 and {fold_count}"
+            )
+        folds.append(raw_fold)
+    if not folds:
+        raise ValueError("At least one fold is required")
+    if len(folds) != len(set(folds)):
+        raise ValueError("Fold numbers must be unique")
+    return tuple(folds)
+
+
+def _configure_split(
+    config: dict[str, Any],
+    seed: int,
+    fold_index: int | None,
+    validation_offset: int,
+) -> None:
+    config["split"]["random_seed"] = seed
+    if fold_index is not None:
+        config["split"].update(
+            {
+                "strategy": "grouped_kfold",
+                "fold_index": fold_index,
+                "validation_offset": validation_offset,
+            }
+        )
+
+
 def configure_ablation_run(
-    base_config: dict[str, Any], seed: int, workspace: str | Path,
+    base_config: dict[str, Any],
+    seed: int,
+    workspace: str | Path,
+    fold_index: int | None = None,
+    validation_offset: int = 1,
 ) -> dict[str, Any]:
     config = deepcopy(base_config)
     root = Path(workspace)
-    config["split"]["random_seed"] = seed
+    _configure_split(config, seed, fold_index, validation_offset)
     config["model"]["random_seed"] = seed
     config["output"] = {
         "metrics_directory": str(root / "metrics"),
@@ -38,11 +86,15 @@ def configure_ablation_run(
 
 
 def configure_model_comparison_run(
-    base_config: dict[str, Any], seed: int, workspace: str | Path,
+    base_config: dict[str, Any],
+    seed: int,
+    workspace: str | Path,
+    fold_index: int | None = None,
+    validation_offset: int = 1,
 ) -> dict[str, Any]:
     config = deepcopy(base_config)
     root = Path(workspace)
-    config["split"]["random_seed"] = seed
+    _configure_split(config, seed, fold_index, validation_offset)
     for model_config in config["models"].values():
         model_config["random_seed"] = seed
     config["output"] = {
@@ -56,11 +108,15 @@ def configure_model_comparison_run(
 
 
 def configure_open_set_run(
-    base_config: dict[str, Any], seed: int, workspace: str | Path,
+    base_config: dict[str, Any],
+    seed: int,
+    workspace: str | Path,
+    fold_index: int | None = None,
+    validation_offset: int = 1,
 ) -> dict[str, Any]:
     config = deepcopy(base_config)
     root = Path(workspace)
-    config["split"]["random_seed"] = seed
+    _configure_split(config, seed, fold_index, validation_offset)
     config["model"]["random_seed"] = seed
     config["output"] = {
         "classifier_path": str(root / "classifier.joblib"),
@@ -73,7 +129,11 @@ def configure_open_set_run(
     return config
 
 
-def extract_open_set_row(report: dict[str, Any], seed: int) -> dict[str, Any]:
+def extract_open_set_row(
+    report: dict[str, Any],
+    seed: int,
+    fold: int | None = None,
+) -> dict[str, Any]:
     """Flatten the thesis-relevant scalar open-set metrics."""
     thresholds = report["thresholds"]
     closed = report["known_closed_set"]
@@ -94,6 +154,21 @@ def extract_open_set_row(report: dict[str, Any], seed: int) -> dict[str, Any]:
         "normal_anomaly_recall": unseen["normal_anomaly_recall"],
         "mean_first_unknown_step": unseen["mean_first_unknown_step"],
     }
+    if fold is not None:
+        row["fold"] = fold
+    for metric in (
+        "unknown_true_positive",
+        "unknown_false_positive",
+    ):
+        if metric in unseen:
+            row[metric] = unseen[metric]
+    if "unseen_test_rows" in report.get("dataset", {}):
+        row["unseen_test_rows"] = report["dataset"]["unseen_test_rows"]
+    if "unseen_source_files" in report.get("dataset", {}):
+        row["unseen_source_files"] = ";".join(
+            str(source_file)
+            for source_file in report["dataset"]["unseen_source_files"]
+        )
     for label, recall in known.get("per_class_recall", {}).items():
         row[f"known_{label}_recall"] = recall
     return row
@@ -115,7 +190,8 @@ def aggregate_repeated_runs(
     if metric_columns is None:
         metrics = [
             column for column in runs.select_dtypes(include="number").columns
-            if column != "seed" and column not in groups
+            if column not in {"seed", "fold", "model_seed"}
+            and column not in groups
         ]
     else:
         metrics = list(metric_columns)
@@ -131,6 +207,58 @@ def aggregate_repeated_runs(
     summary = summary.reset_index()
     summary.insert(len(groups), "runs", grouped.size().to_numpy())
     return summary
+
+
+def aggregate_binary_confusion_matrix(
+    runs: pd.DataFrame,
+    experiment_name: str,
+) -> np.ndarray:
+    """Sum binary confusion counts for one experiment across grouped folds."""
+    required_columns = {
+        "experiment_name",
+        "true_negative",
+        "false_positive",
+        "false_negative",
+        "true_positive",
+    }
+    missing_columns = required_columns - set(runs.columns)
+    if missing_columns:
+        raise ValueError(
+            "Missing confusion-matrix columns: "
+            f"{sorted(missing_columns)}"
+        )
+
+    selected = runs[
+        runs["experiment_name"].astype(str).eq(experiment_name)
+    ]
+    if selected.empty:
+        raise ValueError(f"No runs found for experiment: {experiment_name}")
+
+    count_columns = [
+        "true_negative",
+        "false_positive",
+        "false_negative",
+        "true_positive",
+    ]
+    counts = selected[count_columns].apply(
+        pd.to_numeric,
+        errors="coerce",
+    )
+    if counts.isna().any().any() or (counts < 0).any().any():
+        raise ValueError(
+            "Confusion-matrix counts must be numeric and non-negative"
+        )
+    if not np.equal(counts.to_numpy(), np.floor(counts.to_numpy())).all():
+        raise ValueError("Confusion-matrix values must be whole counts")
+
+    totals = counts.sum().astype(int)
+    return np.asarray(
+        [
+            [totals["true_negative"], totals["false_positive"]],
+            [totals["false_negative"], totals["true_positive"]],
+        ],
+        dtype=int,
+    )
 
 
 def save_table(frame: pd.DataFrame, output_path: str | Path) -> None:

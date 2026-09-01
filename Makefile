@@ -144,8 +144,8 @@ drift-repeated:
 
 drift-phases:
 	$(PYTHON) scripts/analyze_live_drift_phases.py \
-		results/edge/mqtt_measurement_drift_v2.csv \
-		results/edge/mqtt_communication_drift_v2.csv
+		results/edge/mqtt_measurement_drift.csv \
+		results/edge/mqtt_communication_drift.csv
 
 drift-live-repeated-summary:
 	$(PYTHON) scripts/summarize_repeated_live_drift.py \

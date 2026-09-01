@@ -1,5 +1,5 @@
 edge_config: config/edge.yaml
-input: data/raw/multiview_v2_runs/gradual_run_01.csv
+input: data/raw/training_runs/gradual_run_01.csv
 repetitions: 5
 warmup_messages_per_device: 34
 

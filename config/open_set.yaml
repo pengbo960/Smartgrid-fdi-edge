@@ -1,5 +1,5 @@
 dataset:
-  path: data/processed/multiview_v2_dataset.csv
+  path: data/processed/multiview_dataset.csv
 
 labels:
   known_attack_types:

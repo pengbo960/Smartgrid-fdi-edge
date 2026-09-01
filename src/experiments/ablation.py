@@ -25,7 +25,7 @@ from src.training.prepare_dataset import (
     prepare_known_attack_dataset,
 )
 from src.training.split_data import (
-    split_stratified_grouped_dataset,
+    split_grouped_dataset,
 )
 from src.training.train_baseline import (
     train_logistic_baseline,
@@ -217,6 +217,9 @@ def run_ablation_experiment(
     drop_warmup_rows: bool,
     maximum_missing_fraction: float,
     split_random_seed: int,
+    split_strategy: str,
+    split_fold_index: int | None,
+    split_validation_offset: int,
     class_weight: str | dict[int, float] | None,
     max_iter: int,
     model_random_seed: int,
@@ -242,9 +245,12 @@ def run_ablation_experiment(
         ),
     )
 
-    split = split_stratified_grouped_dataset(
+    split = split_grouped_dataset(
         prepared=prepared,
+        strategy=split_strategy,
         random_seed=split_random_seed,
+        fold_index=split_fold_index,
+        validation_offset=split_validation_offset,
     )
 
     training_result = train_logistic_baseline(
@@ -402,8 +408,12 @@ def run_ablation_experiment(
             )
         ),
         title=(
-            f"{experiment.name} "
-            "Test Confusion Matrix"
+            "All-view LR Confusion Matrix"
+            if experiment.name == "all_views"
+            else (
+                f"{experiment.name.replace('_', ' ').title()} "
+                "LR Confusion Matrix"
+            )
         ),
     )
 

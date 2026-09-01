@@ -15,7 +15,7 @@ from src.training.prepare_dataset import (
     load_feature_dataset,
     prepare_known_attack_dataset,
 )
-from src.training.split_data import split_stratified_grouped_dataset
+from src.training.split_data import split_grouped_dataset
 
 
 def load_config(path: str | Path) -> dict[str, Any]:
@@ -50,9 +50,16 @@ def main() -> None:
             preprocessing.get("maximum_missing_fraction", 0.0)
         ),
     )
-    split = split_stratified_grouped_dataset(
+    split = split_grouped_dataset(
         prepared=prepared,
+        strategy=str(split_config.get("strategy", "grouped_holdout")),
         random_seed=int(split_config.get("random_seed", 42)),
+        fold_index=(
+            int(split_config["fold_index"])
+            if "fold_index" in split_config
+            else None
+        ),
+        validation_offset=int(split_config.get("validation_offset", 1)),
     )
     evaluation = config["evaluation"]
     output = config["output"]

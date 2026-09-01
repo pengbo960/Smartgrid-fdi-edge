@@ -1,5 +1,5 @@
 platform_label: macbook_emulated_edge_gateway
-input: data/raw/multiview_v2_runs/gradual_run_01.csv
+input: data/raw/training_runs/gradual_run_01.csv
 repetitions: 5
 duration_seconds: 20
 message_rates:

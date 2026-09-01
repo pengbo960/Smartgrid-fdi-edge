@@ -8,9 +8,8 @@ import pandas as pd
 
 
 SOURCES = {
-    "ablation": Path("results/v2/ablation/ablation_summary.csv"),
-    "open_set": Path("results/open_set/metrics/open_set_metrics.json"),
-    "edge": Path("results/edge/macbook_benchmark.json"),
+    "ablation": Path("results/repeated/ablation_summary.csv"),
+    "open_set": Path("results/repeated/open_set_summary.csv"),
     "edge_mac_repeated": Path(
         "results/edge/repeated/open_set_benchmark_summary.csv"
     ),
@@ -24,7 +23,9 @@ SOURCES = {
         "results/edge/raspberry_pi/live_mqtt_matched/"
         "live_mqtt_formal_summary.csv"
     ),
-    "model_comparison": Path("results/model_comparison/model_comparison.csv"),
+    "model_comparison": Path(
+        "results/repeated/model_comparison_summary.csv"
+    ),
     "drift": Path("results/drift/drift_repeated_summary.json"),
     "pi_live_drift": Path(
         "results/drift/raspberry_pi_repeated_live/live_drift_summary.csv"
@@ -56,8 +57,7 @@ def build_summary() -> tuple[dict[str, Any], pd.DataFrame]:
 
     ablation = pd.read_csv(SOURCES["ablation"])
     models = pd.read_csv(SOURCES["model_comparison"])
-    open_set = load_json(SOURCES["open_set"])
-    edge = load_json(SOURCES["edge"])
+    open_set = pd.read_csv(SOURCES["open_set"]).iloc[0]
     edge_mac_repeated = pd.read_csv(SOURCES["edge_mac_repeated"]).iloc[0]
     edge_pi_repeated = pd.read_csv(SOURCES["edge_pi_repeated"]).iloc[0]
     platform_comparison = pd.read_csv(SOURCES["platform_comparison"])
@@ -94,34 +94,71 @@ def build_summary() -> tuple[dict[str, Any], pd.DataFrame]:
 
     summary = {
         "multi_view": {
-            "macro_f1": float(all_views["macro_f1"]),
-            "recall": float(all_views["recall"]),
-            "false_positive_rate": float(all_views["false_positive_rate"]),
+            "folds": int(all_views["runs"]),
+            "macro_f1": float(all_views["macro_f1_mean"]),
+            "macro_f1_std": float(all_views["macro_f1_std"]),
+            "recall": float(all_views["recall_mean"]),
+            "recall_std": float(all_views["recall_std"]),
+            "false_positive_rate": float(
+                all_views["false_positive_rate_mean"]
+            ),
+            "false_positive_rate_std": float(
+                all_views["false_positive_rate_std"]
+            ),
         },
         "open_set": {
-            "unseen_attack": open_set["dataset"]["unseen_attack_type"],
-            "unknown_recall": float(open_set["unseen"]["unknown_recall"]),
-            "unknown_precision": float(open_set["unseen"]["unknown_precision"]),
+            "folds": int(open_set["runs"]),
+            "unseen_attack": "gradual",
+            "unknown_recall": float(open_set["unknown_recall_mean"]),
+            "unknown_recall_std": float(open_set["unknown_recall_std"]),
+            "unknown_precision": float(open_set["unknown_precision_mean"]),
+            "unknown_precision_std": float(
+                open_set["unknown_precision_std"]
+            ),
             "known_false_unknown_rate": float(
-                open_set["known_open_set"]["false_unknown_rate"]
+                open_set["false_unknown_rate_mean"]
+            ),
+            "known_false_unknown_rate_std": float(
+                open_set["false_unknown_rate_std"]
             ),
         },
         "model_comparison": {
-            "logistic_macro_f1": float(logistic["macro_f1"]),
-            "random_forest_macro_f1": float(forest["macro_f1"]),
-            "logistic_inference_ms": float(logistic["inference_mean_ms"]),
-            "random_forest_inference_ms": float(forest["inference_mean_ms"]),
-            "logistic_model_size_mb": float(logistic["model_size_mb"]),
-            "random_forest_model_size_mb": float(forest["model_size_mb"]),
+            "folds": int(logistic["runs"]),
+            "logistic_macro_f1": float(logistic["macro_f1_mean"]),
+            "logistic_macro_f1_std": float(logistic["macro_f1_std"]),
+            "random_forest_macro_f1": float(forest["macro_f1_mean"]),
+            "random_forest_macro_f1_std": float(forest["macro_f1_std"]),
+            "logistic_inference_ms": float(
+                logistic["inference_mean_ms_mean"]
+            ),
+            "random_forest_inference_ms": float(
+                forest["inference_mean_ms_mean"]
+            ),
+            "logistic_model_size_mb": float(logistic["model_size_mb_mean"]),
+            "random_forest_model_size_mb": float(
+                forest["model_size_mb_mean"]
+            ),
         },
         "edge_gateway": {
-            "platform": edge["platform_label"],
-            "mean_latency_ms": float(edge["latency_ms"]["mean"]),
-            "p95_latency_ms": float(edge["latency_ms"]["p95"]),
-            "throughput_messages_per_second": float(
-                edge["throughput_messages_per_second"]
+            "platform": str(edge_mac_repeated["platform_label"]),
+            "runs": int(edge_mac_repeated["runs"]),
+            "mean_latency_ms": float(
+                edge_mac_repeated["total_latency_mean_ms_mean"]
             ),
-            "peak_memory_mb": float(edge["peak_memory_mb_after"]),
+            "p95_latency_ms": float(
+                edge_mac_repeated["total_latency_p95_ms_mean"]
+            ),
+            "throughput_messages_per_second": float(
+                edge_mac_repeated["throughput_messages_per_second_mean"]
+            ),
+            "cpu_percent_single_core_equivalent": float(
+                edge_mac_repeated[
+                    "cpu_percent_single_core_equivalent_mean"
+                ]
+            ),
+            "peak_memory_mb": float(
+                edge_mac_repeated["process_peak_memory_after_mb_mean"]
+            ),
         },
         "raspberry_pi_gateway": {
             "platform": str(edge_pi_repeated["platform_label"]),

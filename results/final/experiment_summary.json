@@ -1,29 +1,42 @@
 {
   "multi_view": {
-    "macro_f1": 0.9973500263751528,
-    "recall": 0.995,
-    "false_positive_rate": 0.0006497725795971
+    "folds": 5,
+    "macro_f1": 0.9971621516043664,
+    "macro_f1_std": 0.0005952309447266,
+    "recall": 0.9965,
+    "recall_std": 0.0032489314482696,
+    "false_positive_rate": 0.0009873913865537,
+    "false_positive_rate_std": 0.0005996986172292
   },
   "open_set": {
+    "folds": 5,
     "unseen_attack": "gradual",
-    "unknown_recall": 0.95,
-    "unknown_precision": 0.8962264150943396,
-    "known_false_unknown_rate": 0.01854974704890388
+    "unknown_recall": 0.9533333333333334,
+    "unknown_recall_std": 0.0131233464566863,
+    "unknown_precision": 0.6229685728884324,
+    "unknown_precision_std": 0.0394079776428849,
+    "known_false_unknown_rate": 0.019602493374471,
+    "known_false_unknown_rate_std": 0.0031875561264037
   },
   "model_comparison": {
-    "logistic_macro_f1": 0.9973500263751528,
-    "random_forest_macro_f1": 0.9995186945632992,
-    "logistic_inference_ms": 0.0488024810329079,
-    "random_forest_inference_ms": 5.908122740453109,
+    "folds": 5,
+    "logistic_macro_f1": 0.9971621516043664,
+    "logistic_macro_f1_std": 0.0005952309447266,
+    "random_forest_macro_f1": 0.9998073999869218,
+    "random_forest_macro_f1_std": 0.0002637284652432,
+    "logistic_inference_ms": 0.0486406072974204,
+    "random_forest_inference_ms": 5.87736629974097,
     "logistic_model_size_mb": 0.0036020278930664,
-    "random_forest_model_size_mb": 7.941455841064453
+    "random_forest_model_size_mb": 8.257434844970703
   },
   "edge_gateway": {
     "platform": "macbook_emulated_edge_gateway",
-    "mean_latency_ms": 6.763459066073787,
-    "p95_latency_ms": 6.96299021365121,
-    "throughput_messages_per_second": 147.74841317855103,
-    "peak_memory_mb": 165.75
+    "runs": 5,
+    "mean_latency_ms": 6.748328148470824,
+    "p95_latency_ms": 6.891299984417856,
+    "throughput_messages_per_second": 148.15932337260077,
+    "cpu_percent_single_core_equivalent": 99.99315337061974,
+    "peak_memory_mb": 166.109375
   },
   "raspberry_pi_gateway": {
     "platform": "raspberry_pi_5_model_b",

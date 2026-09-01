@@ -1,9 +1,13 @@
-seeds:
-  - 42
-  - 43
-  - 44
-  - 45
-  - 46
+split_strategy: grouped_kfold
+fold_count: 5
+folds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+validation_offset: 1
+model_seed_base: 42
 
 experiments:
   ablation_config: config/ablation.yaml
@@ -12,3 +16,6 @@ experiments:
 
 output:
   root_directory: results/repeated
+  aggregate_confusion_matrix_outputs:
+    - results/ablation/figures/all_views_confusion_matrix.png
+    - dissertation/images/all_views_confusion_matrix.png

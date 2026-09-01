@@ -191,6 +191,79 @@ def _validate_split_labels(
         )
 
 
+def _assemble_dataset_split(
+    prepared: PreparedDataset,
+    train_groups: list[str],
+    validation_groups: list[str],
+    test_groups: list[str],
+) -> DatasetSplit:
+    """Build and validate dataframes from three disjoint group lists."""
+    dataframe = prepared.dataframe
+    group_column = prepared.group_column
+    train_group_set = set(train_groups)
+    validation_group_set = set(validation_groups)
+    test_group_set = set(test_groups)
+
+    _validate_group_separation(
+        train_groups=train_group_set,
+        validation_groups=validation_group_set,
+        test_groups=test_group_set,
+    )
+
+    train = dataframe[
+        dataframe[group_column].astype(str).isin(train_group_set)
+    ].copy()
+    validation = dataframe[
+        dataframe[group_column].astype(str).isin(validation_group_set)
+    ].copy()
+    test = dataframe[
+        dataframe[group_column].astype(str).isin(test_group_set)
+    ].copy()
+
+    for split_name, frame in (
+        ("Training", train),
+        ("Validation", validation),
+        ("Test", test),
+    ):
+        if frame.empty:
+            raise ValueError(f"{split_name} split is empty")
+
+    required_attack_types = set(dataframe["attack_type"].astype(str).unique())
+    for split_name, frame in (
+        ("Training", train),
+        ("Validation", validation),
+        ("Test", test),
+    ):
+        _validate_split_labels(
+            frame=frame,
+            split_name=split_name,
+            required_attack_types=required_attack_types,
+        )
+
+    return DatasetSplit(
+        train=train.reset_index(drop=True),
+        validation=validation.reset_index(drop=True),
+        test=test.reset_index(drop=True),
+        train_groups=tuple(sorted(train_group_set)),
+        validation_groups=tuple(sorted(validation_group_set)),
+        test_groups=tuple(sorted(test_group_set)),
+    )
+
+
+def _validate_required_columns(prepared: PreparedDataset) -> None:
+    required_columns = {
+        prepared.group_column,
+        "attack_type",
+        "is_attack",
+    }
+    missing_columns = required_columns - set(prepared.dataframe.columns)
+    if missing_columns:
+        raise ValueError(
+            "Dataset missing split columns: "
+            f"{sorted(missing_columns)}"
+        )
+
+
 def split_stratified_grouped_dataset(
     prepared: PreparedDataset,
     random_seed: int = 42,
@@ -203,25 +276,9 @@ def split_stratified_grouped_dataset(
         one run -> validation
         one run -> testing
     """
+    _validate_required_columns(prepared)
     dataframe = prepared.dataframe
     group_column = prepared.group_column
-
-    required_columns = {
-        group_column,
-        "attack_type",
-        "is_attack",
-    }
-
-    missing_columns = (
-        required_columns
-        - set(dataframe.columns)
-    )
-
-    if missing_columns:
-        raise ValueError(
-            "Dataset missing split columns: "
-            f"{sorted(missing_columns)}"
-        )
 
     group_table = _build_group_table(
         dataframe=dataframe,
@@ -268,99 +325,107 @@ def split_stratified_grouped_dataset(
             scenario_test
         )
 
-    train_group_set = set(
-        train_groups
+    return _assemble_dataset_split(
+        prepared=prepared,
+        train_groups=train_groups,
+        validation_groups=validation_groups,
+        test_groups=test_groups,
     )
 
-    validation_group_set = set(
-        validation_groups
+
+def split_stratified_grouped_fold_dataset(
+    prepared: PreparedDataset,
+    fold_index: int,
+    validation_offset: int = 1,
+) -> DatasetSplit:
+    """Create one deterministic grouped fold with a rotating validation run.
+
+    Source files are sorted inside each scenario family. ``fold_index`` selects
+    one test file per family, while ``validation_offset`` selects a different
+    file relative to the test file. Across all folds, every source file appears
+    exactly once in the test split and exactly once in the validation split.
+    """
+    _validate_required_columns(prepared)
+    if isinstance(fold_index, bool) or not isinstance(fold_index, int):
+        raise TypeError("fold_index must be an integer")
+    if isinstance(validation_offset, bool) or not isinstance(
+        validation_offset, int
+    ):
+        raise TypeError("validation_offset must be an integer")
+
+    group_table = _build_group_table(
+        dataframe=prepared.dataframe,
+        group_column=prepared.group_column,
     )
-
-    test_group_set = set(
-        test_groups
-    )
-
-    _validate_group_separation(
-        train_groups=train_group_set,
-        validation_groups=validation_group_set,
-        test_groups=test_group_set,
-    )
-
-    train = dataframe[
-        dataframe[group_column]
-        .astype(str)
-        .isin(train_group_set)
-    ].copy()
-
-    validation = dataframe[
-        dataframe[group_column]
-        .astype(str)
-        .isin(validation_group_set)
-    ].copy()
-
-    test = dataframe[
-        dataframe[group_column]
-        .astype(str)
-        .isin(test_group_set)
-    ].copy()
-
-    if train.empty:
+    group_counts = group_table.groupby("scenario_type").size()
+    if group_counts.empty:
+        raise ValueError("No source-file groups were found")
+    if group_counts.nunique() != 1:
         raise ValueError(
-            "Training split is empty"
+            "Grouped folds require the same number of runs for every "
+            f"scenario type; found {group_counts.to_dict()}"
         )
 
-    if validation.empty:
+    fold_count = int(group_counts.iloc[0])
+    if fold_count < 3:
         raise ValueError(
-            "Validation split is empty"
+            "Grouped folds require at least three runs per scenario type"
+        )
+    if not 0 <= fold_index < fold_count:
+        raise ValueError(
+            f"fold_index must be between 0 and {fold_count - 1}; "
+            f"received {fold_index}"
+        )
+    if validation_offset % fold_count == 0:
+        raise ValueError(
+            "validation_offset must select a different run from the test run"
         )
 
-    if test.empty:
-        raise ValueError(
-            "Test split is empty"
+    train_groups: list[str] = []
+    validation_groups: list[str] = []
+    test_groups: list[str] = []
+    validation_index = (fold_index + validation_offset) % fold_count
+
+    for _, scenario_frame in group_table.groupby("scenario_type", sort=True):
+        scenario_groups = sorted(
+            scenario_frame[prepared.group_column].astype(str).tolist()
+        )
+        test_groups.append(scenario_groups[fold_index])
+        validation_groups.append(scenario_groups[validation_index])
+        train_groups.extend(
+            group
+            for index, group in enumerate(scenario_groups)
+            if index not in {fold_index, validation_index}
         )
 
-    required_attack_types = {
-        attack_type
-        for attack_type in dataframe[
-            "attack_type"
-        ].astype(str).unique()
-    }
-
-    _validate_split_labels(
-        frame=train,
-        split_name="Training",
-        required_attack_types=required_attack_types,
+    return _assemble_dataset_split(
+        prepared=prepared,
+        train_groups=train_groups,
+        validation_groups=validation_groups,
+        test_groups=test_groups,
     )
 
-    _validate_split_labels(
-        frame=validation,
-        split_name="Validation",
-        required_attack_types=required_attack_types,
-    )
 
-    _validate_split_labels(
-        frame=test,
-        split_name="Test",
-        required_attack_types=required_attack_types,
-    )
-
-    return DatasetSplit(
-        train=train.reset_index(
-            drop=True
-        ),
-        validation=validation.reset_index(
-            drop=True
-        ),
-        test=test.reset_index(
-            drop=True
-        ),
-        train_groups=tuple(
-            sorted(train_group_set)
-        ),
-        validation_groups=tuple(
-            sorted(validation_group_set)
-        ),
-        test_groups=tuple(
-            sorted(test_group_set)
-        ),
-    )
+def split_grouped_dataset(
+    prepared: PreparedDataset,
+    strategy: str = "grouped_holdout",
+    random_seed: int = 42,
+    fold_index: int | None = None,
+    validation_offset: int = 1,
+) -> DatasetSplit:
+    """Dispatch to the configured grouped splitting strategy."""
+    normalised_strategy = str(strategy).strip().lower()
+    if normalised_strategy in {"grouped_holdout", "repeated_holdout"}:
+        return split_stratified_grouped_dataset(
+            prepared=prepared,
+            random_seed=random_seed,
+        )
+    if normalised_strategy in {"grouped_kfold", "grouped_fold"}:
+        if fold_index is None:
+            raise ValueError("fold_index is required for grouped_kfold")
+        return split_stratified_grouped_fold_dataset(
+            prepared=prepared,
+            fold_index=fold_index,
+            validation_offset=validation_offset,
+        )
+    raise ValueError(f"Unsupported grouped split strategy: {strategy}")

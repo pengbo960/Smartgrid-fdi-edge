@@ -141,6 +141,23 @@ def main() -> None:
                     42,
                 )
             ),
+            split_strategy=str(
+                split_config.get(
+                    "strategy",
+                    "grouped_holdout",
+                )
+            ),
+            split_fold_index=(
+                int(split_config["fold_index"])
+                if "fold_index" in split_config
+                else None
+            ),
+            split_validation_offset=int(
+                split_config.get(
+                    "validation_offset",
+                    1,
+                )
+            ),
             class_weight=(
                 model_config.get(
                     "class_weight",

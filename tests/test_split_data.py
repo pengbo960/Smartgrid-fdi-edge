@@ -6,6 +6,8 @@ from src.training.prepare_dataset import (
 )
 from src.training.split_data import (
     infer_scenario_type,
+    split_grouped_dataset,
+    split_stratified_grouped_fold_dataset,
     split_stratified_grouped_dataset,
 )
 
@@ -284,4 +286,65 @@ def test_too_few_runs_per_scenario_are_rejected() -> None:
         split_stratified_grouped_dataset(
             prepared=prepared,
             random_seed=42,
+        )
+
+
+def test_grouped_folds_cover_every_test_run_once() -> None:
+    prepared = build_prepared_dataset()
+    test_groups: list[str] = []
+    validation_groups: list[str] = []
+
+    for fold_index in range(5):
+        split = split_stratified_grouped_fold_dataset(
+            prepared=prepared,
+            fold_index=fold_index,
+        )
+        assert len(split.train_groups) == 9
+        assert len(split.validation_groups) == 3
+        assert len(split.test_groups) == 3
+        test_groups.extend(split.test_groups)
+        validation_groups.extend(split.validation_groups)
+
+    all_groups = sorted(
+        prepared.dataframe["source_file"]
+        .astype(str)
+        .unique()
+    )
+    assert sorted(test_groups) == all_groups
+    assert sorted(validation_groups) == all_groups
+
+
+def test_grouped_fold_dispatch_is_reproducible() -> None:
+    prepared = build_prepared_dataset()
+    first = split_grouped_dataset(
+        prepared=prepared,
+        strategy="grouped_kfold",
+        random_seed=42,
+        fold_index=2,
+        validation_offset=1,
+    )
+    second = split_grouped_dataset(
+        prepared=prepared,
+        strategy="grouped_kfold",
+        random_seed=999,
+        fold_index=2,
+        validation_offset=1,
+    )
+    assert first.train_groups == second.train_groups
+    assert first.validation_groups == second.validation_groups
+    assert first.test_groups == second.test_groups
+
+
+def test_invalid_grouped_fold_is_rejected() -> None:
+    prepared = build_prepared_dataset()
+    with pytest.raises(ValueError, match="between 0 and 4"):
+        split_stratified_grouped_fold_dataset(
+            prepared=prepared,
+            fold_index=5,
+        )
+    with pytest.raises(ValueError, match="different run"):
+        split_stratified_grouped_fold_dataset(
+            prepared=prepared,
+            fold_index=0,
+            validation_offset=5,
         )
