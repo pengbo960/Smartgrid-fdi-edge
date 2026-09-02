@@ -463,9 +463,19 @@ throttling/undervoltage condition was recorded during this evaluation.
 ## Reproducibility and generated files
 
 Raw MQTT datasets, complete prediction logs and trained Joblib artifacts are
-not committed because they are generated and may be large. Configuration,
-ordered model metadata, metrics summaries and selected figures are retained.
-Run the corresponding `make` targets to regenerate local artifacts.
+not committed to Git because they are generated and may be large. The
+`dissertation-v1.0` GitHub Release publishes the audited data, models and
+machine-readable results as a separate ZIP, together with an internal manifest,
+per-file SHA-256 digests and an archive checksum:
+
+<https://github.com/pengbo960/Smartgrid-fdi-edge/releases/tag/dissertation-v1.0>
+
+The tagged source tree retains configuration, ordered model metadata, metrics
+summaries and selected figures. See [ARTIFACT_RELEASE.md](ARTIFACT_RELEASE.md)
+for the exact contents, dataset-count audit, evaluation denominators, scope of
+the `unseen` and first-`unknown` metrics, live/drift parameters, poisoning-test
+boundary and verification commands. Run the corresponding `make` targets to
+regenerate local artifacts.
 
 ## Edge hardware evaluation
 
