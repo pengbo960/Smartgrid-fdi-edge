@@ -1,14 +1,24 @@
 # Dissertation artifact release
 
-This repository's `dissertation-v1.0` tag and its GitHub Release form the
-reproducibility snapshot for the dissertation evaluation. The source code,
-configuration, compact summaries and selected figures are in the tagged Git
-tree. Large generated artifacts are provided in the Release asset
-`smartgrid-fdi-edge-artifacts-dissertation-v1.0.zip`.
+This repository uses two immutable tags for the dissertation reproducibility
+snapshot. `dissertation-v1.0` identifies the audited source, configuration and
+compact-result commit. `dissertation-artifacts-v1.0` adds the large generated
+artifact bundle without changing that source snapshot. The bundle is stored at
+`artifacts/smartgrid-fdi-edge-artifacts-dissertation-v1.0.zip` in the artifact
+tag.
 
-Release URL:
+Direct bundle download:
 
-<https://github.com/pengbo960/Smartgrid-fdi-edge/releases/tag/dissertation-v1.0>
+<https://github.com/pengbo960/Smartgrid-fdi-edge/raw/refs/tags/dissertation-artifacts-v1.0/artifacts/smartgrid-fdi-edge-artifacts-dissertation-v1.0.zip>
+
+Archive checksum:
+
+<https://github.com/pengbo960/Smartgrid-fdi-edge/blob/dissertation-artifacts-v1.0/artifacts/smartgrid-fdi-edge-artifacts-dissertation-v1.0.zip.sha256>
+
+Browsable manifest and per-file checksums:
+
+- <https://github.com/pengbo960/Smartgrid-fdi-edge/blob/dissertation-artifacts-v1.0/artifacts/MANIFEST.csv>
+- <https://github.com/pengbo960/Smartgrid-fdi-edge/blob/dissertation-artifacts-v1.0/artifacts/SHA256SUMS>
 
 ## Bundle contents
 
@@ -115,8 +125,8 @@ Logistic Regression, Isolation Forest and MQTT protocol pipeline.
 
 ## Verification
 
-After downloading the ZIP and its companion `.sha256` file, verify the archive
-on macOS or Linux:
+After downloading the ZIP and its companion `.sha256` file into the same
+directory, verify the archive on macOS or Linux:
 
 ```bash
 shasum -a 256 -c smartgrid-fdi-edge-artifacts-dissertation-v1.0.zip.sha256
@@ -128,4 +138,4 @@ shasum -a 256 -c SHA256SUMS
 The bundle was produced from the tagged source using the package versions in
 `requirements.txt` (Python 3.11, pandas 3.0.3, NumPy 2.4.6, scikit-learn 1.9.0
 and Joblib 1.5.3 among the direct dependencies). There is no DOI for this
-release; the tagged GitHub Release URL above is the stable public locator.
+snapshot; the two tagged GitHub URLs above are the stable public locators.

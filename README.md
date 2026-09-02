@@ -463,12 +463,12 @@ throttling/undervoltage condition was recorded during this evaluation.
 ## Reproducibility and generated files
 
 Raw MQTT datasets, complete prediction logs and trained Joblib artifacts are
-not committed to Git because they are generated and may be large. The
-`dissertation-v1.0` GitHub Release publishes the audited data, models and
-machine-readable results as a separate ZIP, together with an internal manifest,
-per-file SHA-256 digests and an archive checksum:
+not kept in the main development history because they are generated and may be
+large. The separate `dissertation-artifacts-v1.0` tag publishes the audited
+data, models and machine-readable results as a ZIP under `artifacts/`, together
+with an internal manifest, per-file SHA-256 digests and an archive checksum:
 
-<https://github.com/pengbo960/Smartgrid-fdi-edge/releases/tag/dissertation-v1.0>
+<https://github.com/pengbo960/Smartgrid-fdi-edge/raw/refs/tags/dissertation-artifacts-v1.0/artifacts/smartgrid-fdi-edge-artifacts-dissertation-v1.0.zip>
 
 The tagged source tree retains configuration, ordered model metadata, metrics
 summaries and selected figures. See [ARTIFACT_RELEASE.md](ARTIFACT_RELEASE.md)
