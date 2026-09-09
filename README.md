@@ -77,11 +77,12 @@ Requirements:
 - Mosquitto broker and command-line clients
 - Conda or another Python environment manager
 
-Create and verify the environment:
+Create and verify the reproducible environment:
 
 ```bash
 conda env create -f environment.yml
 conda activate smartgrid-fdi
+python -m pip install -r requirements.txt
 python -m pytest -q
 ```
 
