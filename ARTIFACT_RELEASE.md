@@ -1,5 +1,9 @@
 # Dissertation artifact release
 
+For project setup, architecture and runnable commands, see
+[README.md](README.md). This document records the scope, provenance and
+verification details of the immutable dissertation artifact bundle.
+
 This repository uses two immutable tags for the dissertation reproducibility
 snapshot. `dissertation-v1.0` identifies the audited source, configuration and
 compact-result commit. `dissertation-artifacts-v1.0` adds the large generated
@@ -124,6 +128,10 @@ observations. It is not an end-to-end poisoning evaluation of the complete
 Logistic Regression, Isolation Forest and MQTT protocol pipeline.
 
 ## Verification
+
+The dissertation's headline values use the five-fold or five-run summaries
+where available. Single-run files are retained for provenance and diagnostic
+audit and should not be substituted for the repeated estimates.
 
 After downloading the ZIP and its companion `.sha256` file into the same
 directory, verify the archive on macOS or Linux:
